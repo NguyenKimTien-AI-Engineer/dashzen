@@ -10,6 +10,7 @@
 
 | Phase | Tên | Mục tiêu | Map §18 | Ưu tiên |
 |-------|-----|----------|---------|---------|
+| [Auth](./auth/) | **Auth Slice** | JWT login, route guard, task ownership | Slice 1 | P0 |
 | [Phase 1](./phase-1-foundation.md) | Foundation & Minimal Loop | Infra, DB, LLM, chat stream, 1 agent → mock spec | P0 + P1 | P0–P1 |
 | [Phase 2](./phase-2-agent-pipeline.md) | Full Pipeline & Production | 5 sub-agents, workflow, gates, compaction, artifacts | P2 + P3 | P1–P2 |
 | [Phase 3](./phase-3-scale-production.md) | RAG, Data & Observability | Catalog RAG, CSV, eval CI, tracing, connectors | P5 + ⑪ | P2–P3 |

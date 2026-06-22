@@ -6,14 +6,13 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
+    "slowapi>=0.1.9",
     "core",
-    "agents",
     "db",
 ]
 
 [tool.uv.sources]
 core = { workspace = true }
-agents = { workspace = true }
 db = { workspace = true }
 
 [build-system]
