@@ -1,0 +1,40 @@
+[project]
+name = "dashzen"
+version = "0.1.0"
+description = "Multi-agent dashboard generation system"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = [
+    "apps/api",
+    "packages/core",
+    "packages/agents",
+    "packages/tools",
+    "packages/db",
+    "packages/rag",
+    "packages/eval",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["apps/api/tests"]
