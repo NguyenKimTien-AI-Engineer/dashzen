@@ -8,11 +8,14 @@ from core.config import get_settings
 from core.exceptions import TokenInvalidError
 from core.schemas.auth import (
     AuthUserResponse,
+    ChangePasswordRequest,
+    DeleteAccountRequest,
     LoginRequest,
     OkResponse,
     RegisterRequest,
     RegisterResponse,
     ResendVerificationRequest,
+    UpdateProfileRequest,
     UserResponse,
     VerifyEmailRequest,
 )
@@ -122,3 +125,44 @@ async def logout(
 @router.get("/me", response_model=UserResponse)
 async def me(current_user: User = Depends(get_current_user)) -> UserResponse:
     return _user_response(current_user)
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    body: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    service = AuthService(session)
+    user = await service.update_profile(current_user, body.display_name)
+    return _user_response(user)
+
+
+@router.post("/change-password", response_model=OkResponse)
+async def change_password(
+    body: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> OkResponse:
+    service = AuthService(session)
+    await service.change_password(
+        current_user, body.current_password, body.new_password
+    )
+    return OkResponse()
+
+
+@router.delete("/me", response_model=OkResponse)
+async def delete_me(
+    body: DeleteAccountRequest,
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> OkResponse:
+    refresh_token = request.cookies.get(get_settings().refresh_cookie_name)
+    service = AuthService(session)
+    if refresh_token:
+        await service.logout(refresh_token)
+    await service.delete_account(current_user, body.password)
+    clear_auth_cookies(response)
+    return OkResponse()

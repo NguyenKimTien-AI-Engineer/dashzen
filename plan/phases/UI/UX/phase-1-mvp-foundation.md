@@ -73,6 +73,8 @@ apps/studio/
 
 ### 3.1 Authentication & routing (§2)
 
+> **Chi tiết implement:** [`plan/phases/UI/Auth/`](../../Auth/) — plan riêng cho Auth UI slice.
+
 - [ ] `POST /v1/auth/login` → httpOnly cookie
 - [ ] `POST /v1/auth/refresh` — silent refresh
 - [ ] `AuthGuard` + Next.js middleware
@@ -91,7 +93,10 @@ apps/studio/
 
 ### 3.2 App shell & sidebar (§3, §4)
 
+> **Chi tiết shell (Claude-inspired):** [04-sidebar-shell.md](./04-sidebar-shell.md)
+
 - [ ] Layout: Sidebar + AuthGuard + workspace chat/canvas
+- [x] Sidebar shell: collapse, search btn, nav (New chat / Chats / Projects / Artifacts), footer user menu
 - [ ] **New Dashboard** → `POST /v1/tasks` → navigate `/app/task/{id}`
 - [ ] **Recents** → `GET /v1/tasks` — title, status icon, relative time
 - [ ] Recents: skeleton loading (3–5 items), empty state CTA

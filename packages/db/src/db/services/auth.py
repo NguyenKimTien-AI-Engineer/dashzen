@@ -17,10 +17,19 @@ from core.exceptions import (
 from db.models.user import User
 from db.repositories.refresh_token import (
     get_refresh_token,
+    revoke_all_user_refresh_tokens,
     revoke_refresh_token,
     store_refresh_token,
 )
-from db.repositories.user import create_user, get_user_by_email, get_user_by_id, update_last_login
+from db.repositories.user import (
+    create_user,
+    delete_user,
+    get_user_by_email,
+    get_user_by_id,
+    update_last_login,
+    update_user_display_name,
+    update_user_password_hash,
+)
 
 
 @dataclass(frozen=True)
@@ -98,3 +107,19 @@ class AuthService:
         expires_at = datetime.now(UTC) + timedelta(days=settings.jwt_refresh_token_expire_days)
         await store_refresh_token(self.session, jti, user.id, expires_at)
         return TokenPair(access_token=access_token, refresh_token=refresh_token)
+
+    async def update_profile(self, user: User, display_name: str) -> User:
+        return await update_user_display_name(self.session, user.id, display_name)
+
+    async def change_password(self, user: User, current_password: str, new_password: str) -> None:
+        if not verify_password(current_password, user.password_hash):
+            raise InvalidCredentialsError()
+        await update_user_password_hash(
+            self.session, user.id, hash_password(new_password)
+        )
+
+    async def delete_account(self, user: User, password: str) -> None:
+        if not verify_password(password, user.password_hash):
+            raise InvalidCredentialsError()
+        await revoke_all_user_refresh_tokens(self.session, user.id)
+        await delete_user(self.session, user.id)

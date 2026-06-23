@@ -11,7 +11,8 @@ def set_auth_cookies(
 ) -> None:
     settings = settings or get_settings()
     secure = settings.cookie_secure_resolved
-    access_max_age = settings.jwt_access_token_expire_minutes * 60
+    # Keep access cookie in the browser for the refresh window; JWT inside still
+    # expires per jwt_access_token_expire_minutes — API returns 401 → FE refreshes.
     refresh_max_age = settings.jwt_refresh_token_expire_days * 24 * 60 * 60
 
     response.set_cookie(
@@ -21,7 +22,7 @@ def set_auth_cookies(
         secure=secure,
         samesite=settings.cookie_samesite,
         path=settings.access_cookie_path,
-        max_age=access_max_age,
+        max_age=refresh_max_age,
     )
     response.set_cookie(
         key=settings.refresh_cookie_name,

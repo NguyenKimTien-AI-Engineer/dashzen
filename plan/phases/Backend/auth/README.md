@@ -12,8 +12,9 @@
 |------------|------------|
 | Backend Auth (JWT, cookies, routes) | **Done** |
 | Security hardening (review fixes) | **Done** — xem [07-implementation-status.md](./07-implementation-status.md) |
-| Frontend Auth (Studio) | Chưa làm |
-| Email verification | **Planned** — xem [06-email-verification.md](./06-email-verification.md) |
+| Frontend Auth (Studio) | **Planned** — xem [UI/Auth](../../UI/Auth/) |
+| Email verification (BE) | **Done** — xem [06-email-verification.md](./06-email-verification.md) |
+| Email verification (UI) | **Planned** — xem [UI/Auth/06](../../UI/Auth/06-email-verification.md) |
 
 ---
 
@@ -88,6 +89,7 @@ Email verification — sau Auth hardening
 
 | File | Liên quan |
 |------|-----------|
+| [`UI/Auth/`](../../UI/Auth/) | **Auth UI plan** — forms, guards, verify email |
 | [`UI/UX/phase-1-mvp-foundation.md`](../../UI/UX/phase-1-mvp-foundation.md) | §3.1 Auth & routing |
 | [`Backend/phase-1-foundation.md`](../phase-1-foundation.md) | §3.8 API auth |
 | [00-docker-postgres.md](./00-docker-postgres.md) | Docker DB setup |

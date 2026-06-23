@@ -101,3 +101,4 @@ Phase 3 (P5 + ⑪)
 | [`04-dashboard-spec-schema.md`](../../04-dashboard-spec-schema.md) | DashboardSpec Pydantic |
 | [`06-api-contracts.md`](../../06-api-contracts.md) | OpenAPI, branching, rate limits |
 | [`plan/phases/UI/UX/`](../UI/UX/) | Frontend phases (P4) |
+| [`plan/phases/UI/Auth/`](../UI/Auth/) | Auth UI slice (prerequisite Studio) |

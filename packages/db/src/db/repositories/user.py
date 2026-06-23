@@ -44,3 +44,32 @@ async def mark_email_verified(session: AsyncSession, user_id: UUID) -> None:
         .values(email_verified=True, email_verified_at=now)
     )
     await session.commit()
+
+
+async def update_user_display_name(
+    session: AsyncSession, user_id: UUID, display_name: str
+) -> User:
+    await session.execute(
+        update(User).where(User.id == user_id).values(display_name=display_name)
+    )
+    await session.commit()
+    user = await get_user_by_id(session, user_id)
+    assert user is not None
+    return user
+
+
+async def update_user_password_hash(
+    session: AsyncSession, user_id: UUID, password_hash: str
+) -> None:
+    await session.execute(
+        update(User).where(User.id == user_id).values(password_hash=password_hash)
+    )
+    await session.commit()
+
+
+async def delete_user(session: AsyncSession, user_id: UUID) -> None:
+    user = await get_user_by_id(session, user_id)
+    if user is None:
+        return
+    await session.delete(user)
+    await session.commit()

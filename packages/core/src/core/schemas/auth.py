@@ -1,7 +1,8 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
 from core.auth.validation import PasswordValidationError, validate_register_password
@@ -63,6 +64,50 @@ class RegisterResponse(BaseModel):
 
 class OkResponse(BaseModel):
     ok: bool = True
+
+
+class UpdateProfileRequest(BaseModel):
+    display_name: str = Field(min_length=1, max_length=100)
+
+    @field_validator("display_name", mode="before")
+    @classmethod
+    def normalize_display_name(cls, value: str) -> str:
+        if not isinstance(value, str):
+            return value
+        stripped = value.strip()
+        if not stripped:
+            raise PydanticCustomError(
+                "display_name_required",
+                "Display name is required.",
+            )
+        return stripped
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def check_password_strength(cls, value: str) -> str:
+        try:
+            return validate_register_password(value)
+        except PasswordValidationError as exc:
+            raise PydanticCustomError(exc.code, exc.message) from exc
+
+    @model_validator(mode="after")
+    def check_passwords_differ(self) -> "ChangePasswordRequest":
+        if self.new_password == self.current_password:
+            raise PydanticCustomError(
+                "password_unchanged",
+                "New password must differ from current password.",
+            )
+        return self
+
+
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=128)
+    confirmation: Literal["DELETE"]
 
 
 class ErrorBody(BaseModel):

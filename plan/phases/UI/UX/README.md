@@ -8,20 +8,25 @@
 
 ## Tổng quan
 
-| Phase | Tên | Mục tiêu | Ưu tiên |
-|-------|-----|----------|---------|
+| Slice / Phase | Tên | Mục tiêu | Ưu tiên |
+|---------------|-----|----------|---------|
+| [**Auth**](../Auth/) | **Auth Slice** | Login, register, verify email, route guard | P0 |
 | [Phase 1](./phase-1-mvp-foundation.md) | MVP Foundation | Ship webapp chat-first có thể tạo dashboard end-to-end | P0–P1 |
 | [Phase 2](./phase-2-core-ux.md) | Core UX | Streaming mượt, HITL đầy đủ, resilience, performance | P1–P2 |
 | [Phase 3](./phase-3-polish-scale.md) | Polish & Scale | Export, prefs, i18n, discovery features | P2–P3 |
+| [Sidebar shell](./04-sidebar-shell.md) | Sidebar Shell | Claude-inspired collapse, nav, user menu | P0 (shell) |
 
 ---
 
 ## Phụ thuộc giữa các phase
 
 ```
+Auth Slice (UI)          ← plan/phases/UI/Auth/
+    │
+    ▼
 Phase 1 (MVP)
     │
-    ├── Auth + App shell + Sidebar
+    ├── App shell + Sidebar (AuthGuard từ Auth slice)
     ├── TaskContext + SSE cơ bản
     ├── Chat + HITL Y/N + Agent block basic
     └── Canvas preview basic
@@ -78,3 +83,5 @@ Phase 3 (Polish)
 | [`03-agent-runtime-and-memory.md`](../../03-agent-runtime-and-memory.md) | Gates FSM, recovery |
 | [`04-dashboard-spec-schema.md`](../../04-dashboard-spec-schema.md) | WidgetRenderer |
 | [`06-api-contracts.md`](../../06-api-contracts.md) | OpenAPI, branching, headers |
+| [`plan/phases/UI/Auth/`](../Auth/) | Auth UI slice — forms, guards, verify email |
+| [`plan/phases/Backend/auth/`](../../Backend/auth/) | Auth API as-built |
