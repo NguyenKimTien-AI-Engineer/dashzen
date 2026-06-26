@@ -50,3 +50,5 @@ infra/compose/data/
 
 # MinIO / uploads (local dev)
 uploads/
+# Playwright
+apps/studio/test-results/
