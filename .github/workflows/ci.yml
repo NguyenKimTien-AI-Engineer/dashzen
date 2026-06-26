@@ -27,7 +27,7 @@ env:
   AVATAR_STORAGE_DIR: /tmp/dashzen-test-avatars
   LLM_PROVIDER: gemini
   APP_SECRET_KEY: ci-app-secret
-  APP_ENV: test
+  APP_ENV: development
 
 jobs:
   changes:
