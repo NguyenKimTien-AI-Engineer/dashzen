@@ -1,0 +1,128 @@
+[
+  {
+    "id": "kpi",
+    "name": "KPI Card",
+    "category": "metric",
+    "description": "Single headline metric with bold number, label, optional delta badge and sparkline inline. Highest visual weight — always the top row.",
+    "props": ["title", "value", "format", "delta", "deltaLabel", "sparklineData"]
+  },
+  {
+    "id": "statCard",
+    "name": "Stat Card",
+    "category": "metric",
+    "description": "KPI variant with icon, contextual subtitle, and small progress bar or mini trend underneath the number. Suited for operational counts.",
+    "props": ["title", "value", "format", "icon", "subtitle", "progressValue", "progressMax"]
+  },
+  {
+    "id": "gauge",
+    "name": "Gauge",
+    "category": "metric",
+    "description": "Radial arc or dial showing a single value relative to a target. SVG stroke-dasharray animation on enter. Use for rate or fulfillment metrics.",
+    "props": ["title", "value", "min", "max", "unit", "thresholds"]
+  },
+  {
+    "id": "progressBar",
+    "name": "Progress Bar",
+    "category": "metric",
+    "description": "Horizontal bar showing completion ratio with percentage label. Stack multiple bars for comparison. Animates fill on enter.",
+    "props": ["title", "items", "valueField", "maxField", "labelField", "format"]
+  },
+  {
+    "id": "rankingList",
+    "name": "Ranking List",
+    "category": "metric",
+    "description": "Sorted list of items with inline bar proportional to value. Rank number badge on left. Good for top-N analysis.",
+    "props": ["title", "items", "labelField", "valueField", "format", "maxItems"]
+  },
+  {
+    "id": "barChart",
+    "name": "Bar Chart",
+    "category": "chart",
+    "description": "Categorical comparison. Supports grouped and stacked variants. Gradient fill on bars optional. Horizontal variant suits long category labels.",
+    "props": ["title", "xField", "yField", "aggregation", "variant", "orientation"]
+  },
+  {
+    "id": "lineChart",
+    "name": "Line Chart",
+    "category": "chart",
+    "description": "Time-series or sequential trend. Smooth curves, dot markers, multi-series with distinct colors. Supports reference lines for targets.",
+    "props": ["title", "xField", "yField", "seriesField", "smooth", "showDots"]
+  },
+  {
+    "id": "areaChart",
+    "name": "Area Chart",
+    "category": "chart",
+    "description": "Filled line chart for cumulative or stacked trends. Semi-transparent fill with gradient. Emphasizes volume and accumulation.",
+    "props": ["title", "xField", "yField", "seriesField", "stacked", "gradient"]
+  },
+  {
+    "id": "pieChart",
+    "name": "Pie / Donut Chart",
+    "category": "chart",
+    "description": "Part-to-whole composition. Donut variant with center label for primary metric. Max 6 segments; beyond that use bar chart. Hover expands slice.",
+    "props": ["title", "nameField", "valueField", "variant", "centerLabel"]
+  },
+  {
+    "id": "scatterPlot",
+    "name": "Scatter Plot",
+    "category": "chart",
+    "description": "Correlation between two numeric dimensions. Bubble variant adds a third dimension via dot size. Ideal for outlier detection.",
+    "props": ["title", "xField", "yField", "sizeField", "colorField", "labelField"]
+  },
+  {
+    "id": "radarChart",
+    "name": "Radar / Spider Chart",
+    "category": "chart",
+    "description": "Multi-axis comparison of a subject across 3–8 dimensions. Compare multiple subjects by overlaying polygons. Suited for profiling.",
+    "props": ["title", "dimensions", "series", "maxValue"]
+  },
+  {
+    "id": "funnelChart",
+    "name": "Funnel Chart",
+    "category": "chart",
+    "description": "Sequential stage conversion from top to bottom. Each stage narrower by conversion rate. Highlights drop-off percentage.",
+    "props": ["title", "stages", "labelField", "valueField", "showConversionRate"]
+  },
+  {
+    "id": "heatmap",
+    "name": "Heatmap",
+    "category": "chart",
+    "description": "2D grid where color intensity encodes value magnitude. Calendar heatmap for activity over time. Matrix heatmap for cross-dimension density.",
+    "props": ["title", "xField", "yField", "valueField", "colorRange", "variant"]
+  },
+  {
+    "id": "treemap",
+    "name": "Treemap",
+    "category": "chart",
+    "description": "Hierarchical data as nested rectangles sized by value. Color encodes a second dimension. Best for proportional part-of-whole with many categories.",
+    "props": ["title", "nameField", "valueField", "colorField", "maxDepth"]
+  },
+  {
+    "id": "mixedChart",
+    "name": "Mixed Chart",
+    "category": "chart",
+    "description": "Bar and line on the same axes — typically volume bars + rate line. Dual y-axes when units differ. Expresses correlation between two metrics.",
+    "props": ["title", "xField", "barField", "lineField", "barAggregation", "lineAggregation"]
+  },
+  {
+    "id": "table",
+    "name": "Data Table",
+    "category": "table",
+    "description": "Sortable, filterable tabular data with sticky header and row striping. Supports numeric columns right-aligned, inline sparklines per row, conditional cell coloring.",
+    "props": ["title", "columns", "pageSize", "sortField", "sortDir"]
+  },
+  {
+    "id": "timeline",
+    "name": "Timeline / Activity Feed",
+    "category": "table",
+    "description": "Chronological list of events with icon, label, value, and timestamp. Scrollable feed format. Suited for recent transactions or activity logs.",
+    "props": ["title", "items", "dateField", "labelField", "valueField", "iconField", "maxItems"]
+  },
+  {
+    "id": "filterBar",
+    "name": "Filter Bar",
+    "category": "filter",
+    "description": "Shared controls — date range picker, single-select, multi-select, search input. Affects all subscribed widgets. Always visible and accessible.",
+    "props": ["filters"]
+  }
+]
