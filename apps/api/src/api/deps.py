@@ -1,8 +1,5 @@
 from uuid import UUID
 
-from fastapi import Depends, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.auth.jwt import decode_token
 from core.config import get_settings
 from core.exceptions import (
@@ -11,9 +8,13 @@ from core.exceptions import (
     TokenTypeMismatchError,
     UserInactiveError,
 )
+from db.models.task import Task
 from db.models.user import User
 from db.repositories.user import get_user_by_id
+from db.services.task_service import get_task
 from db.session import get_db
+from fastapi import Depends, HTTPException, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def _extract_bearer_token(request: Request) -> str | None:
@@ -24,10 +25,10 @@ def _extract_bearer_token(request: Request) -> str | None:
 
 
 def _extract_access_token(request: Request) -> str | None:
-    cookie_token = request.cookies.get(get_settings().access_cookie_name)
-    if cookie_token:
-        return cookie_token
-    return _extract_bearer_token(request)
+    bearer = _extract_bearer_token(request)
+    if bearer:
+        return bearer
+    return request.cookies.get(get_settings().access_cookie_name)
 
 
 async def get_current_user(
@@ -55,3 +56,14 @@ async def get_current_user(
 
 async def get_current_user_id(user: User = Depends(get_current_user)) -> UUID:
     return user.id
+
+
+async def require_task(
+    task_id: UUID,
+    user: User,
+    db: AsyncSession,
+) -> Task:
+    task = await get_task(db, task_id, user.id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task

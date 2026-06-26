@@ -6,6 +6,16 @@ from slowapi.errors import RateLimitExceeded
 from api.errors import register_exception_handlers
 from api.rate_limit import limiter
 from api.routes.auth import router as auth_router
+from api.routes.compact import router as compact_router
+from api.routes.export import router as export_router
+from api.routes.gates import router as gates_router
+from api.routes.llm import router as llm_router
+from api.routes.stream import router as stream_router
+from api.routes.artifacts import router as artifacts_router
+from api.routes.projects import router as projects_router
+from api.routes.tasks import router as tasks_router
+from api.routes.upload import router as upload_router
+from api.routes.users import router as users_router
 from core.config import get_settings
 
 
@@ -26,6 +36,16 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(app)
     app.include_router(auth_router)
+    app.include_router(tasks_router)
+    app.include_router(projects_router)
+    app.include_router(artifacts_router)
+    app.include_router(stream_router)
+    app.include_router(llm_router)
+    app.include_router(gates_router)
+    app.include_router(upload_router)
+    app.include_router(compact_router)
+    app.include_router(export_router)
+    app.include_router(users_router)
 
     @app.get("/health")
     async def health() -> dict[str, str]:

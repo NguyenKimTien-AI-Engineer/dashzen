@@ -5,6 +5,85 @@ from httpx import AsyncClient
 
 from tests.auth_helpers import register_verify_login
 
+# 1x1 PNG
+MINI_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+    b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
+@pytest.mark.asyncio
+async def test_upload_avatar_success(
+    client: AsyncClient, mail_backend
+) -> None:
+    email = f"avatar-{uuid.uuid4().hex[:8]}@example.com"
+    password = "securepass123"
+
+    await register_verify_login(client, mail_backend, email, password)
+
+    upload_res = await client.post(
+        "/v1/auth/me/avatar",
+        files={"file": ("avatar.png", MINI_PNG, "image/png")},
+    )
+    assert upload_res.status_code == 200
+    body = upload_res.json()
+    assert body["avatar_url"] is not None
+    assert f"/v1/users/{body['id']}/avatar" in body["avatar_url"]
+
+    avatar_res = await client.get(f"/v1/users/{body['id']}/avatar")
+    assert avatar_res.status_code == 200
+    assert avatar_res.headers["content-type"] == "image/png"
+    assert avatar_res.content == MINI_PNG
+
+
+@pytest.mark.asyncio
+async def test_upload_avatar_requires_auth(client: AsyncClient) -> None:
+    res = await client.post(
+        "/v1/auth/me/avatar",
+        files={"file": ("avatar.png", MINI_PNG, "image/png")},
+    )
+    assert res.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_upload_avatar_rejects_invalid_type(
+    client: AsyncClient, mail_backend
+) -> None:
+    email = f"bad-avatar-{uuid.uuid4().hex[:8]}@example.com"
+    password = "securepass123"
+
+    await register_verify_login(client, mail_backend, email, password)
+
+    res = await client.post(
+        "/v1/auth/me/avatar",
+        files={"file": ("notes.txt", b"hello", "text/plain")},
+    )
+    assert res.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_delete_avatar_success(
+    client: AsyncClient, mail_backend
+) -> None:
+    email = f"del-avatar-{uuid.uuid4().hex[:8]}@example.com"
+    password = "securepass123"
+
+    await register_verify_login(client, mail_backend, email, password)
+
+    upload_res = await client.post(
+        "/v1/auth/me/avatar",
+        files={"file": ("avatar.png", MINI_PNG, "image/png")},
+    )
+    user_id = upload_res.json()["id"]
+
+    delete_res = await client.delete("/v1/auth/me/avatar")
+    assert delete_res.status_code == 200
+    assert delete_res.json()["avatar_url"] is None
+
+    avatar_res = await client.get(f"/v1/users/{user_id}/avatar")
+    assert avatar_res.status_code == 404
+
 
 @pytest.mark.asyncio
 async def test_update_profile_display_name(

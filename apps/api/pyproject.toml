@@ -7,13 +7,18 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
     "slowapi>=0.1.9",
+    "python-multipart>=0.0.9",
     "core",
     "db",
+    "agents",
+    "tools",
 ]
 
 [tool.uv.sources]
 core = { workspace = true }
 db = { workspace = true }
+agents = { workspace = true }
+tools = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

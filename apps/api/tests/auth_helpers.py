@@ -1,6 +1,8 @@
+import uuid
+
 from httpx import AsyncClient
 
-from core.config import Settings
+from core.config import Settings, get_settings
 from core.email.testing import InMemoryEmailBackend
 
 
@@ -60,3 +62,31 @@ def refresh_token_from_client(client: AsyncClient, settings: Settings) -> str:
     token = client.cookies.get(settings.refresh_cookie_name)
     assert token is not None
     return token
+
+
+async def create_test_user_and_login(
+    client: AsyncClient,
+    mail_backend: InMemoryEmailBackend,
+    suffix: str = "",
+) -> dict[str, str]:
+    settings = get_settings()
+    unique = uuid.uuid4().hex[:8]
+    email = f"testuser-{unique}{suffix}@example.com"
+    password = "Password123!"
+
+    resp = await client.post("/v1/auth/register", json={"email": email, "password": password})
+    assert resp.status_code == 201
+
+    code = mail_backend.last_code
+    assert code is not None
+
+    resp = await client.post("/v1/auth/verify-email", json={"email": email, "code": code})
+    assert resp.status_code == 200
+
+    resp = await client.post("/v1/auth/login", json={"email": email, "password": password})
+    assert resp.status_code == 200
+
+    token = client.cookies.get(settings.access_cookie_name)
+    assert token is not None
+
+    return {"Authorization": f"Bearer {token}"}

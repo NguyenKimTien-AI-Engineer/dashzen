@@ -20,6 +20,7 @@ os.environ.setdefault(
 )
 os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
 os.environ.setdefault("EMAIL_BACKEND", "console")
+os.environ.setdefault("AVATAR_STORAGE_DIR", "/tmp/dashzen-test-avatars")
 
 
 async def _postgres_available() -> bool:

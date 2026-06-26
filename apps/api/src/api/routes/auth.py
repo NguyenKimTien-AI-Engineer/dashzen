@@ -1,8 +1,3 @@
-from fastapi import APIRouter, Depends, Request, Response, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from api.deps import get_current_user
-from api.rate_limit import rate_limit
 from core.auth.cookies import clear_auth_cookies, set_auth_cookies
 from core.config import get_settings
 from core.exceptions import TokenInvalidError
@@ -19,10 +14,17 @@ from core.schemas.auth import (
     UserResponse,
     VerifyEmailRequest,
 )
+from core.storage.avatar_store import ALLOWED_AVATAR_MIME
 from db.models.user import User
 from db.services.auth import AuthService
+from db.services.avatar_service import AvatarService, build_avatar_url
 from db.services.email_verification import EmailVerificationService
 from db.session import get_db
+from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from api.deps import get_current_user
+from api.rate_limit import rate_limit
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 _settings = get_settings()
@@ -33,6 +35,7 @@ def _user_response(user: User) -> UserResponse:
         id=user.id,
         email=user.email,
         display_name=user.display_name,
+        avatar_url=build_avatar_url(user),
         email_verified=user.email_verified,
         created_at=user.created_at,
     )
@@ -135,6 +138,38 @@ async def update_me(
 ) -> UserResponse:
     service = AuthService(session)
     user = await service.update_profile(current_user, body.display_name)
+    return _user_response(user)
+
+
+@router.post("/me/avatar", response_model=UserResponse)
+async def upload_my_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    content_type = file.content_type or "application/octet-stream"
+    if content_type not in ALLOWED_AVATAR_MIME:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported content type: {content_type}",
+        )
+
+    data = await file.read()
+    service = AvatarService(session)
+    try:
+        user = await service.upload(current_user, data, content_type)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _user_response(user)
+
+
+@router.delete("/me/avatar", response_model=UserResponse)
+async def delete_my_avatar(
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    service = AvatarService(session)
+    user = await service.remove(current_user)
     return _user_response(user)
 
 
