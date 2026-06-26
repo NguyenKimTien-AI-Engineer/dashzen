@@ -4,6 +4,7 @@
 .cursor
 .vscode
 *.md
+!README.md
 !packages/agents/prompts/**/*.md
 
 # Python
