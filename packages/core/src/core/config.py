@@ -33,6 +33,13 @@ class Settings(BaseSettings):
         default="http://localhost:3000",
         description="Comma-separated allowed CORS origins",
     )
+    api_cors_origin_regex: str = Field(
+        default="",
+        description=(
+            "Optional regex for extra CORS origins (e.g. Vercel previews). "
+            "Defaults to *.vercel.app in production when unset."
+        ),
+    )
 
     access_cookie_name: str = "dashzen_access_token"
     refresh_cookie_name: str = "dashzen_refresh_token"
@@ -112,9 +119,25 @@ class Settings(BaseSettings):
                 raise ValueError("jwt_private_key and jwt_public_key are required for RS256")
         return self
 
+    _VERCEL_CORS_ORIGIN_REGEX = r"https://[\w.-]+\.vercel\.app"
+
     @property
     def cors_origins(self) -> list[str]:
-        return [origin.strip() for origin in self.api_cors_origins.split(",") if origin.strip()]
+        origins: list[str] = []
+        for origin in self.api_cors_origins.split(","):
+            normalized = origin.strip().rstrip("/")
+            if normalized:
+                origins.append(normalized)
+        return origins
+
+    @property
+    def cors_origin_regex(self) -> str | None:
+        explicit = self.api_cors_origin_regex.strip()
+        if explicit:
+            return explicit
+        if self.app_env == "production":
+            return self._VERCEL_CORS_ORIGIN_REGEX
+        return None
 
     @property
     def cookie_secure_resolved(self) -> bool:

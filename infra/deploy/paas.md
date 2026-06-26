@@ -37,7 +37,7 @@ Required Render env vars (see `.env.example` → `[PROD] Render`):
 
 - `DATABASE_URL`, `JWT_SECRET_KEY`, `API_CORS_ORIGINS`, `API_PUBLIC_URL`, `GEMINI_API_KEY`
 - `COOKIE_SECURE=true`, `COOKIE_SAMESITE=none` for cross-domain auth
-- `API_CORS_ORIGINS` must exactly match your Vercel URL (e.g. `https://dashzen-lead.vercel.app`)
+- `API_CORS_ORIGINS` for explicit origins (localhost, custom domain). Production also allows `https://*.vercel.app` automatically.
 
 Auth cookies are stored on the **API domain** (Render), not Vercel. Studio uses `AuthGuard` + `/v1/auth/me`; do not rely on Next.js middleware cookie checks (removed for split deploy).
 
