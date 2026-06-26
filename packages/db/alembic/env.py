@@ -4,6 +4,7 @@ from pathlib import Path
 
 from alembic import context
 from core.config import get_settings
+from core.database_url import database_url_for_async_engine
 from db.base import Base
 from db.models.agent_run import AgentRun  # noqa: F401
 from db.models.email_verification import EmailVerificationCode  # noqa: F401
@@ -15,7 +16,7 @@ from db.models.task import Task  # noqa: F401
 from db.models.user import User  # noqa: F401
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import create_async_engine
 
 config = context.config
 if config.config_file_name is not None:
@@ -36,7 +37,8 @@ if _env_file.is_file():
 
 target_metadata = Base.metadata
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.database_url)
+_db_url, _connect_args = database_url_for_async_engine(settings.database_url)
+config.set_main_option("sqlalchemy.url", _db_url)
 
 
 def run_migrations_offline() -> None:
@@ -59,10 +61,10 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
+    connectable = create_async_engine(
+        _db_url,
         poolclass=pool.NullPool,
+        connect_args=_connect_args,
     )
 
     async with connectable.connect() as connection:
