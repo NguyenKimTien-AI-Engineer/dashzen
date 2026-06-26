@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.auth.jwt import TokenPayload, create_access_token, create_refresh_token, decode_token
 from core.auth.password import hash_password, verify_password
 from core.config import get_settings
@@ -14,6 +11,9 @@ from core.exceptions import (
     TokenExpiredError,
     TokenInvalidError,
 )
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from db.models.user import User
 from db.repositories.refresh_token import (
     get_refresh_token,
@@ -30,6 +30,7 @@ from db.repositories.user import (
     update_user_display_name,
     update_user_password_hash,
 )
+from db.services.avatar_service import AvatarService
 
 
 @dataclass(frozen=True)
@@ -121,5 +122,6 @@ class AuthService:
     async def delete_account(self, user: User, password: str) -> None:
         if not verify_password(password, user.password_hash):
             raise InvalidCredentialsError()
+        await AvatarService(self.session).remove(user)
         await revoke_all_user_refresh_tokens(self.session, user.id)
         await delete_user(self.session, user.id)

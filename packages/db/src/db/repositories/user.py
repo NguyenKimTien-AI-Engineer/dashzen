@@ -55,6 +55,20 @@ async def update_user_display_name(
     await session.commit()
     user = await get_user_by_id(session, user_id)
     assert user is not None
+    await session.refresh(user)
+    return user
+
+
+async def update_user_avatar_key(
+    session: AsyncSession, user_id: UUID, avatar_key: str | None
+) -> User:
+    await session.execute(
+        update(User).where(User.id == user_id).values(avatar_key=avatar_key)
+    )
+    await session.commit()
+    user = await get_user_by_id(session, user_id)
+    assert user is not None
+    await session.refresh(user)
     return user
 
 

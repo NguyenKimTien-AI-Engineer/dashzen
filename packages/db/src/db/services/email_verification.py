@@ -1,7 +1,5 @@
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.auth.otp import (
     generate_verification_code,
     hash_verification_code,
@@ -14,6 +12,8 @@ from core.exceptions import (
     InvalidVerificationCodeError,
     TooManyVerificationAttemptsError,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from db.models.user import User
 from db.repositories.email_verification import (
     consume_verification_code,

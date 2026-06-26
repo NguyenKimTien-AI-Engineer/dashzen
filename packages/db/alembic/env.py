@@ -1,5 +1,6 @@
 import asyncio
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
 from sqlalchemy import pool
@@ -8,13 +9,31 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from core.config import get_settings
 from db.base import Base
+from db.models.agent_run import AgentRun  # noqa: F401
 from db.models.email_verification import EmailVerificationCode  # noqa: F401
+from db.models.file import File  # noqa: F401
+from db.models.message import Message  # noqa: F401
 from db.models.refresh_token import RefreshToken  # noqa: F401
+from db.models.project import Project  # noqa: F401
+from db.models.task import Task  # noqa: F401
 from db.models.user import User  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Ensure repo-root .env is loaded when running from packages/db
+_repo_root = Path(__file__).resolve().parents[3]
+_env_file = _repo_root / ".env"
+if _env_file.is_file():
+    import os
+
+    for line in _env_file.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, value = stripped.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip())
 
 target_metadata = Base.metadata
 settings = get_settings()
