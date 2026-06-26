@@ -7,4 +7,4 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-uv run alembic -c packages/db/alembic.ini upgrade head
+(cd packages/db && uv run alembic upgrade head)

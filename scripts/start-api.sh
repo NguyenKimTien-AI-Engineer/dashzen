@@ -10,7 +10,7 @@ cd "$ROOT"
 PORT="${PORT:-8000}"
 
 echo "==> Running database migrations..."
-uv run alembic -c packages/db/alembic.ini upgrade head
+(cd packages/db && uv run alembic upgrade head)
 
 echo "==> Starting API on 0.0.0.0:${PORT}..."
 exec uv run --package api uvicorn api.main:app --host 0.0.0.0 --port "$PORT"

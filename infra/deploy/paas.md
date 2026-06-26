@@ -42,9 +42,11 @@ Migrations run automatically on container start (`scripts/start-api.sh`).
 
 ## Vercel (Studio)
 
+**Important:** import the repo with **Root Directory = `apps/studio`**. If you leave the root as `.`, Vercel detects `pyproject.toml` + `apps/api/.../main.py` and tries to deploy FastAPI instead of Next.js.
+
 Project settings:
 
-- **Root Directory:** `apps/studio`
+- **Root Directory:** `apps/studio` (required)
 - **Framework:** Next.js (auto-detected)
 - **Environment:** `NEXT_PUBLIC_API_URL` = Render API URL (Production)
 
