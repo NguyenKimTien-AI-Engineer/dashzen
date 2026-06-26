@@ -29,11 +29,28 @@ export async function refreshSession(): Promise<boolean> {
   return tryRefreshToken();
 }
 
+/** Clear stale cookies via logout endpoint, then go to login. Does not delete the account. */
+export async function clearSessionAndLogin(returnTo?: string): Promise<void> {
+  try {
+    await fetch(`${API_URL}/v1/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch {
+    // Best effort — cookies may already be invalid.
+  }
+
+  if (typeof window !== "undefined") {
+    const path =
+      returnTo ?? `${window.location.pathname}${window.location.search}`;
+    window.location.href = `/login?return_to=${encodeURIComponent(path)}`;
+  }
+}
+
 function redirectToLogin() {
   if (typeof window !== "undefined") {
-    // preserve current pathname as return_to
-    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.href = `/login?return_to=${returnTo}`;
+    void clearSessionAndLogin();
   }
 }
 
@@ -43,11 +60,12 @@ export async function fetchWithAuth(
   retried = false,
 ): Promise<Response> {
   const url = path.startsWith("http") ? path : `${API_URL}${path}`;
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
   const res = await fetch(url, {
     ...options,
     credentials: "include",
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...options.headers,
     },
   });

@@ -1,5 +1,5 @@
 import { fetchPublic, fetchWithAuth } from "./client";
-import type { AuthUserResponse, OkResponse, RegisterResponse, User } from "../../modules/auth/types/auth";
+import type { AuthUserResponse, OkResponse, RegisterResponse, User } from "@/modules/auth/types/auth";
 
 export async function login(email: string, password: string): Promise<AuthUserResponse> {
   const res = await fetchPublic("/v1/auth/login", {
@@ -59,6 +59,23 @@ export async function updateProfile(displayName: string): Promise<User> {
   const res = await fetchWithAuth("/v1/auth/me", {
     method: "PATCH",
     body: JSON.stringify({ display_name: displayName }),
+  });
+  return res.json();
+}
+
+export async function uploadAvatar(file: File): Promise<User> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetchWithAuth("/v1/auth/me/avatar", {
+    method: "POST",
+    body: form,
+  });
+  return res.json();
+}
+
+export async function deleteAvatar(): Promise<User> {
+  const res = await fetchWithAuth("/v1/auth/me/avatar", {
+    method: "DELETE",
   });
   return res.json();
 }

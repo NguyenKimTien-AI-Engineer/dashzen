@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { User } from "../../modules/auth/types/auth";
+import type { User } from "@/modules/auth/types/auth";
 
 type AuthStore = {
   user: User | null;
