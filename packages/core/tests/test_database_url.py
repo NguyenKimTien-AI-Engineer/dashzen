@@ -12,6 +12,14 @@ def test_strips_sslmode_for_asyncpg() -> None:
     assert "ssl" in connect_args
 
 
+def test_neon_default_url_converts_to_asyncpg() -> None:
+    raw = "postgresql://user:pass@ep.example.neon.tech/neondb?sslmode=require"
+    url, connect_args = normalize_asyncpg_database_url(raw)
+    assert url.drivername == "postgresql+asyncpg"
+    assert "sslmode" not in url.query
+    assert connect_args.get("ssl") is not None
+
+
 def test_local_url_unchanged() -> None:
     raw = "postgresql+asyncpg://dashzen:dashzen@localhost:5432/dashzen"
     url, connect_args = normalize_asyncpg_database_url(raw)

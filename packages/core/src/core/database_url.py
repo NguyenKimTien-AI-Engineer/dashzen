@@ -21,9 +21,16 @@ _LIBPQ_ONLY_QUERY_KEYS = frozenset(
 _SSLMODE_REQUIRES_TLS = frozenset({"require", "verify-ca", "verify-full", "prefer"})
 
 
+def _ensure_asyncpg_driver(url: URL) -> URL:
+    """Neon gives postgresql:// — DashZen requires asyncpg, not psycopg2."""
+    if url.drivername == "postgresql":
+        return url.set(drivername="postgresql+asyncpg")
+    return url
+
+
 def normalize_asyncpg_database_url(database_url: str) -> tuple[URL, dict[str, Any]]:
     """Strip libpq-only query params and map sslmode to asyncpg connect_args."""
-    url = make_url(database_url)
+    url = _ensure_asyncpg_driver(make_url(database_url))
     query = dict(url.query)
     sslmode = query.pop("sslmode", None)
     for key in _LIBPQ_ONLY_QUERY_KEYS:
