@@ -1,0 +1,52 @@
+# Render Blueprint — DashZen API (Option 3: PaaS split)
+# https://render.com/docs/blueprint-spec
+#
+# First-time setup:
+#   1. Create Neon Postgres → copy DATABASE_URL (postgresql+asyncpg://…?sslmode=require)
+#   2. Render Dashboard → New → Blueprint → connect this repo
+#   3. Set sync:false env vars below (JWT, LLM keys, CORS, public URLs)
+#   4. After deploy, set API_PUBLIC_URL to the service URL shown in Render
+
+services:
+  - type: web
+    name: dashzen-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: EMAIL_BACKEND
+        value: console
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash-lite
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: none
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+      - key: AVATAR_STORAGE_DIR
+        value: /app/data/avatars
+      # ── Set in Render dashboard (Blueprint cannot store secrets) ──
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: API_CORS_ORIGINS
+        sync: false
+      - key: API_PUBLIC_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      # Optional: Upstash Redis for multi-instance rate limits / streams
+      # - key: REDIS_URL
+      #   sync: false

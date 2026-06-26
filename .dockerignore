@@ -1,0 +1,36 @@
+# Git & IDE
+.git
+.github
+.cursor
+.vscode
+*.md
+!packages/agents/prompts/**/*.md
+
+# Python
+.venv
+__pycache__
+*.py[cod]
+.mypy_cache
+.ruff_cache
+.pytest_cache
+htmlcov
+.coverage
+
+# Node / Studio (API image only)
+apps/studio/node_modules
+apps/studio/.next
+apps/studio/test-results
+apps/studio/playwright-report
+
+# Local data & secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+data/
+generated/
+plan/
+
+# Misc
+*.log
+.DS_Store

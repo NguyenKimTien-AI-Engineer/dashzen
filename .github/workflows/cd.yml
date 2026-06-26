@@ -1,0 +1,90 @@
+# CD — runs after CI succeeds on `main`.
+# Vercel and Render deploy via Git integration (see infra/deploy/paas.md).
+# Optional: set repo secrets/variables for hook trigger + post-deploy smoke.
+
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      trigger_render_hook:
+        description: POST to RENDER_DEPLOY_HOOK_URL (if Render auto-deploy is off)
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  trigger-render:
+    name: Trigger Render (optional)
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      inputs.trigger_render_hook == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy hook
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret not set — skip."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK"
+          echo "Render deploy triggered."
+
+  smoke:
+    name: Production smoke
+    if: >
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: API health
+        if: vars.API_HEALTH_URL != ''
+        env:
+          URL: ${{ vars.API_HEALTH_URL }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS "$URL" | grep -q '"status":"ok"'; then
+              echo "API healthy at $URL"
+              exit 0
+            fi
+            echo "Waiting for API deploy ($attempt/6)..."
+            sleep 30
+          done
+          echo "API health check failed: $URL"
+          exit 1
+
+      - name: Studio reachable
+        if: vars.STUDIO_URL != ''
+        env:
+          URL: ${{ vars.STUDIO_URL }}
+        run: |
+          code="$(curl -fsS -o /dev/null -w '%{http_code}' "$URL")"
+          case "$code" in
+            200|307|308) echo "Studio OK ($code) at $URL" ;;
+            *) echo "Unexpected HTTP $code from $URL"; exit 1 ;;
+          esac
+
+      - name: CD ready
+        if: vars.API_HEALTH_URL == '' && vars.STUDIO_URL == ''
+        run: |
+          echo "CI passed on main."
+          echo ""
+          echo "Deploy is handled by platform Git integration:"
+          echo "  • Vercel — root: apps/studio (see apps/studio/vercel.json)"
+          echo "  • Render — render.yaml + Dockerfile"
+          echo ""
+          echo "Optional GitHub repo variables for post-deploy smoke:"
+          echo "  API_HEALTH_URL=https://your-api.onrender.com/health"
+          echo "  STUDIO_URL=https://your-studio.vercel.app"
+          echo ""
+          echo "First-time guide: infra/deploy/paas.md"

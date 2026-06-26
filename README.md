@@ -61,11 +61,13 @@ GitHub Actions workflows (`.github/workflows/`):
 |----------|---------|---------|
 | **CI** | PR + push `main`/`develop` | Ruff, pytest (Postgres), Studio vitest + build |
 | **E2E** | Weekly + manual + Studio PRs | Playwright public smoke |
-| **Deploy** | Manual | Placeholder for Render/Fly + Vercel (PaaS Option 3) |
+| **CD** | After CI on `main` + manual | Post-deploy smoke; Vercel + Render deploy via Git |
 
 Path filters skip unchanged areas on PRs (Python vs Studio). Push to `main` always runs all jobs.
 
-**Deploy target (planned):** Vercel (`apps/studio`) + Render/Fly (API) + Neon/Supabase (Postgres). Use Gemini/OpenRouter for LLM — not Ollama on free PaaS.
+**Deploy (PaaS Option 3):** Vercel (`apps/studio`) + Render (API via `Dockerfile` + `render.yaml`) + Neon (Postgres). LLM: Gemini or OpenRouter — not Ollama on free PaaS.
+
+See **[infra/deploy/paas.md](infra/deploy/paas.md)** for first-time setup and env vars (`.env.production.example`).
 
 ```bash
 # Local parity with CI
