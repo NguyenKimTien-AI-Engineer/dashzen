@@ -8,6 +8,7 @@ AppEnv = Literal["development", "staging", "production"]
 CookieSameSite = Literal["lax", "strict", "none"]
 JwtAlgorithm = Literal["HS256", "RS256"]
 EmailBackendType = Literal["console", "smtp"]
+LLMProvider = Literal["ollama", "anthropic", "openai", "gemini", "openrouter"]
 
 
 class Settings(BaseSettings):
@@ -61,6 +62,45 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_tls: bool = False
     smtp_ssl: bool = False
+
+    llm_provider: LLMProvider = "ollama"
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2"
+    ollama_api_key: str = ""
+    ollama_thinking_enabled: bool = True
+    ollama_think_level: str = Field(
+        default="",
+        description=(
+            "Ollama think level: empty/true, or low|medium|high|max. "
+            "GPT-OSS models only accept low|medium|high."
+        ),
+    )
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-opus-4-5-20251101"
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash-lite"
+    openrouter_api_key: str = ""
+    openrouter_model: str = "openrouter/free"
+    openrouter_site_url: str = "http://localhost:3000"
+    openrouter_app_name: str = "DashZen Studio"
+
+    redis_url: str = "redis://localhost:6379/0"
+
+    s3_endpoint: str = "http://localhost:9000"
+    s3_access_key: str = "minioadmin"
+    s3_secret_key: str = "minioadmin"
+    s3_bucket: str = "dashzen"
+
+    api_public_url: str = Field(
+        default="http://localhost:8000",
+        description="Public API base URL for avatar and asset links",
+    )
+    avatar_storage_dir: str = Field(
+        default="data/avatars",
+        description="Local directory for user avatar files",
+    )
 
     @model_validator(mode="after")
     def validate_jwt_config(self) -> Self:

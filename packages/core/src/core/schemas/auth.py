@@ -47,6 +47,7 @@ class UserResponse(BaseModel):
     id: UUID
     email: EmailStr
     display_name: str | None = None
+    avatar_url: str | None = None
     email_verified: bool = False
     created_at: datetime | None = None
 
