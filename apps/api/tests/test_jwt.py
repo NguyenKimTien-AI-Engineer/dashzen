@@ -3,12 +3,11 @@ from uuid import uuid4
 
 import jwt
 import pytest
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-
 from core.auth.jwt import create_access_token, create_refresh_token, decode_token
 from core.config import Settings, get_settings
 from core.exceptions import TokenExpiredError, TokenTypeMismatchError
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 
 
 def test_access_token_roundtrip() -> None:

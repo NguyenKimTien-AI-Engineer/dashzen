@@ -1,7 +1,3 @@
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-
 from core.exceptions import (
     AlreadyVerifiedError,
     AuthError,
@@ -12,6 +8,9 @@ from core.exceptions import (
     UserInactiveError,
 )
 from core.schemas.validation import format_validation_errors
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -22,9 +21,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code = 409
         elif isinstance(exc, (UserInactiveError, EmailNotVerifiedError)):
             status_code = 403
-        elif isinstance(
-            exc, (InvalidVerificationCodeError, TooManyVerificationAttemptsError)
-        ):
+        elif isinstance(exc, (InvalidVerificationCodeError, TooManyVerificationAttemptsError)):
             status_code = 400
         elif isinstance(exc, AlreadyVerifiedError):
             status_code = 409

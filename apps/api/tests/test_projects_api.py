@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import pytest
+from core.email.testing import InMemoryEmailBackend
 from httpx import AsyncClient
 
-from core.email.testing import InMemoryEmailBackend
 from tests.auth_helpers import create_test_user_and_login
 
 

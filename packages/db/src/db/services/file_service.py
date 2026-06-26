@@ -25,13 +25,9 @@ async def get_current_file(db: AsyncSession, task_id: uuid.UUID, name: str) -> F
     return result.scalar_one_or_none()
 
 
-async def get_file_versions(
-    db: AsyncSession, task_id: uuid.UUID, name: str
-) -> Sequence[File]:
+async def get_file_versions(db: AsyncSession, task_id: uuid.UUID, name: str) -> Sequence[File]:
     result = await db.execute(
-        select(File)
-        .where(File.task_id == task_id, File.name == name)
-        .order_by(File.version.asc())
+        select(File).where(File.task_id == task_id, File.name == name).order_by(File.version.asc())
     )
     return result.scalars().all()
 
@@ -73,9 +69,7 @@ async def upsert_workspace_file(
 
     current = await get_current_file(db, task_id, name)
     if current is not None and bump_version:
-        await db.execute(
-            update(File).where(File.id == current.id).values(is_current=False)
-        )
+        await db.execute(update(File).where(File.id == current.id).values(is_current=False))
         new_version = current.version + 1
         file = File(
             id=file_id or uuid.uuid4(),
@@ -146,13 +140,10 @@ async def restore_file_version(
 
     current = await get_current_file(db, task_id, target.name)
     if current is not None and current.id != target.id:
-        await db.execute(
-            update(File).where(File.id == current.id).values(is_current=False)
-        )
+        await db.execute(update(File).where(File.id == current.id).values(is_current=False))
 
     next_version = (
-        max((v.version for v in await get_file_versions(db, task_id, target.name)), default=0)
-        + 1
+        max((v.version for v in await get_file_versions(db, task_id, target.name)), default=0) + 1
     )
     restored = File(
         task_id=task_id,
@@ -175,9 +166,7 @@ async def restore_file_version(
 
 async def get_artifacts(db: AsyncSession, task_id: uuid.UUID) -> Sequence[File]:
     result = await db.execute(
-        select(File)
-        .where(File.task_id == task_id)
-        .order_by(File.created_at.asc())
+        select(File).where(File.task_id == task_id).order_by(File.created_at.asc())
     )
     return result.scalars().all()
 
@@ -231,9 +220,7 @@ async def remap_files_message_id(
 ) -> None:
     if not file_ids:
         return
-    await db.execute(
-        update(File).where(File.id.in_(file_ids)).values(message_id=message_id)
-    )
+    await db.execute(update(File).where(File.id.in_(file_ids)).values(message_id=message_id))
     await db.flush()
 
 

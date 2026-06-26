@@ -5,11 +5,11 @@ import zipfile
 from pathlib import Path
 
 import pytest
+from core.email.testing import InMemoryEmailBackend
+from db.services.file_service import upsert_workspace_file
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from core.email.testing import InMemoryEmailBackend
-from db.services.file_service import upsert_workspace_file
 from tests.auth_helpers import create_test_user_and_login
 
 _FIXTURES = Path(__file__).resolve().parents[3] / "packages/eval/src/eval/fixtures"
@@ -82,7 +82,10 @@ async def test_export_zip_with_valid_artifacts(
             db, task_id=tid, name="spec.md", content=(_FIXTURES / "valid_spec.md").read_text()
         )
         await upsert_workspace_file(
-            db, task_id=tid, name="dashboard.html", content=(_FIXTURES / "valid_dashboard.html").read_text()
+            db,
+            task_id=tid,
+            name="dashboard.html",
+            content=(_FIXTURES / "valid_dashboard.html").read_text(),
         )
         await db.commit()
 
@@ -116,7 +119,10 @@ async def test_export_rejects_invalid_spec(
             db, task_id=tid, name="spec.md", content=(_FIXTURES / "invalid_spec.md").read_text()
         )
         await upsert_workspace_file(
-            db, task_id=tid, name="dashboard.html", content=(_FIXTURES / "valid_dashboard.html").read_text()
+            db,
+            task_id=tid,
+            name="dashboard.html",
+            content=(_FIXTURES / "valid_dashboard.html").read_text(),
         )
         await db.commit()
 

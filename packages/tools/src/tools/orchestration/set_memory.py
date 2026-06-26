@@ -8,8 +8,7 @@ from tools.context import ToolContext
 DEFINITION = ToolDefinition(
     name="set_memory",
     description=(
-        "Update workflow state (type and phase). "
-        "Returns workflow instructions for the new phase."
+        "Update workflow state (type and phase). Returns workflow instructions for the new phase."
     ),
     parameters={
         "type": "object",
@@ -44,9 +43,7 @@ async def execute(args: dict, ctx: ToolContext) -> str:  # type: ignore[type-arg
     except ValueError as exc:
         return f"[Error] {exc}"
 
-    workflow_content = await write_memory(
-        ctx.db, ctx.task_id, type_, phase, ctx.artifact_buffer
-    )
+    workflow_content = await write_memory(ctx.db, ctx.task_id, type_, phase, ctx.artifact_buffer)
     ctx.read_cache.invalidate_workspace_listing()
 
     if current.type != type_:

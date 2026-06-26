@@ -1,9 +1,9 @@
 import uuid
 
 import pytest
+from core.email.testing import InMemoryEmailBackend
 from httpx import AsyncClient
 
-from core.email.testing import InMemoryEmailBackend
 from tests.auth_helpers import register_verify_login
 
 

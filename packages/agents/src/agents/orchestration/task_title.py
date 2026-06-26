@@ -21,8 +21,7 @@ async def generate_title(
     force = turn_number >= TITLE_FORCE_BY_TURN
     template = load_prompt_file("system", "task-title.md")
     prompt = (
-        f"{template}\n\nforce={str(force).lower()}\n\n"
-        f"Conversation:\n{conversation_so_far[:800]}"
+        f"{template}\n\nforce={str(force).lower()}\n\nConversation:\n{conversation_so_far[:800]}"
     )
     try:
         client = get_llm_client()

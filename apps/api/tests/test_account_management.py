@@ -14,9 +14,7 @@ MINI_PNG = (
 
 
 @pytest.mark.asyncio
-async def test_upload_avatar_success(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_upload_avatar_success(client: AsyncClient, mail_backend) -> None:
     email = f"avatar-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -47,9 +45,7 @@ async def test_upload_avatar_requires_auth(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_upload_avatar_rejects_invalid_type(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_upload_avatar_rejects_invalid_type(client: AsyncClient, mail_backend) -> None:
     email = f"bad-avatar-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -63,9 +59,7 @@ async def test_upload_avatar_rejects_invalid_type(
 
 
 @pytest.mark.asyncio
-async def test_delete_avatar_success(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_delete_avatar_success(client: AsyncClient, mail_backend) -> None:
     email = f"del-avatar-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -86,9 +80,7 @@ async def test_delete_avatar_success(
 
 
 @pytest.mark.asyncio
-async def test_update_profile_display_name(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_update_profile_display_name(client: AsyncClient, mail_backend) -> None:
     email = f"profile-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -114,9 +106,7 @@ async def test_update_profile_requires_auth(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_update_profile_rejects_empty_display_name(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_update_profile_rejects_empty_display_name(client: AsyncClient, mail_backend) -> None:
     email = f"empty-name-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -128,9 +118,7 @@ async def test_update_profile_rejects_empty_display_name(
 
 
 @pytest.mark.asyncio
-async def test_change_password_success(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_change_password_success(client: AsyncClient, mail_backend) -> None:
     email = f"changepw-{uuid.uuid4().hex[:8]}@example.com"
     old_password = "securepass123"
     new_password = "newpass456"
@@ -162,9 +150,7 @@ async def test_change_password_success(
 
 
 @pytest.mark.asyncio
-async def test_change_password_wrong_current(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_change_password_wrong_current(client: AsyncClient, mail_backend) -> None:
     email = f"wrongpw-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -179,9 +165,7 @@ async def test_change_password_wrong_current(
 
 
 @pytest.mark.asyncio
-async def test_change_password_same_as_current(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_change_password_same_as_current(client: AsyncClient, mail_backend) -> None:
     email = f"samewp-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -196,9 +180,7 @@ async def test_change_password_same_as_current(
 
 
 @pytest.mark.asyncio
-async def test_delete_account_success(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_delete_account_success(client: AsyncClient, mail_backend) -> None:
     email = f"delete-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -222,9 +204,7 @@ async def test_delete_account_success(
 
 
 @pytest.mark.asyncio
-async def test_delete_account_wrong_password(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_delete_account_wrong_password(client: AsyncClient, mail_backend) -> None:
     email = f"delwrong-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 
@@ -243,9 +223,7 @@ async def test_delete_account_wrong_password(
 
 
 @pytest.mark.asyncio
-async def test_delete_account_invalid_confirmation(
-    client: AsyncClient, mail_backend
-) -> None:
+async def test_delete_account_invalid_confirmation(client: AsyncClient, mail_backend) -> None:
     email = f"delconf-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
 

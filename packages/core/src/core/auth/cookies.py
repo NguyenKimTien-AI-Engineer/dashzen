@@ -1,6 +1,5 @@
-from fastapi import Response
-
 from core.config import Settings, get_settings
+from fastapi import Response
 
 
 def set_auth_cookies(

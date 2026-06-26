@@ -3,10 +3,10 @@ from __future__ import annotations
 import uuid
 
 import pytest
-from httpx import AsyncClient
-
 from agents.gates.gate_service import _mem_ask, _mem_gates, init_ask_gate, init_gate
 from core.email.testing import InMemoryEmailBackend
+from httpx import AsyncClient
+
 from tests.auth_helpers import create_test_user_and_login
 
 

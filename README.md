@@ -53,6 +53,29 @@ npm install
 npm run dev   # http://localhost:3000
 ```
 
+## CI/CD
+
+GitHub Actions workflows (`.github/workflows/`):
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| **CI** | PR + push `main`/`develop` | Ruff, pytest (Postgres), Studio vitest + build |
+| **E2E** | Weekly + manual + Studio PRs | Playwright public smoke |
+| **Deploy** | Manual | Placeholder for Render/Fly + Vercel (PaaS Option 3) |
+
+Path filters skip unchanged areas on PRs (Python vs Studio). Push to `main` always runs all jobs.
+
+**Deploy target (planned):** Vercel (`apps/studio`) + Render/Fly (API) + Neon/Supabase (Postgres). Use Gemini/OpenRouter for LLM — not Ollama on free PaaS.
+
+```bash
+# Local parity with CI
+uv sync
+uv run ruff check apps packages
+uv run ruff format --check apps packages
+uv run pytest
+cd apps/studio && npm ci && npm test && npm run build
+```
+
 ## License
 
 Private — all rights reserved.

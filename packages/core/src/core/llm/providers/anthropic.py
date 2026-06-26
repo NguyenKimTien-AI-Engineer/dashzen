@@ -10,8 +10,7 @@ from core.llm.types import LLMDelta, LLMMessage, ToolDefinition
 
 def _build_tools(tools: list[ToolDefinition]) -> list[dict]:  # type: ignore[type-arg]
     return [
-        {"name": t.name, "description": t.description, "input_schema": t.parameters}
-        for t in tools
+        {"name": t.name, "description": t.description, "input_schema": t.parameters} for t in tools
     ]
 
 
@@ -26,27 +25,31 @@ def _messages_to_anthropic(
                 system = m.content
             continue
         if m.role == "tool":
-            out.append({
-                "role": "user",
-                "content": [
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": m.tool_call_id,
-                        "content": m.content if isinstance(m.content, str) else str(m.content),
-                    }
-                ],
-            })
+            out.append(
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": m.tool_call_id,
+                            "content": m.content if isinstance(m.content, str) else str(m.content),
+                        }
+                    ],
+                }
+            )
         elif m.tool_calls:
             content_blocks = []
             if isinstance(m.content, str) and m.content:
                 content_blocks.append({"type": "text", "text": m.content})
             for tc in m.tool_calls:
-                content_blocks.append({
-                    "type": "tool_use",
-                    "id": tc.get("id"),
-                    "name": tc.get("name"),
-                    "input": tc.get("input", {}),
-                })
+                content_blocks.append(
+                    {
+                        "type": "tool_use",
+                        "id": tc.get("id"),
+                        "name": tc.get("name"),
+                        "input": tc.get("input", {}),
+                    }
+                )
             out.append({"role": "assistant", "content": content_blocks})
         else:
             content = m.content if isinstance(m.content, str) else str(m.content)
@@ -159,10 +162,9 @@ class AnthropicProvider:
                                 kind="thinking_delta", thinking=delta.get("thinking", "")
                             )
                         elif dtype == "input_json_delta":
-                            pending_tool["args_json"] = (
-                                pending_tool.get("args_json", "")
-                                + delta.get("partial_json", "")
-                            )
+                            pending_tool["args_json"] = pending_tool.get(
+                                "args_json", ""
+                            ) + delta.get("partial_json", "")
                     elif etype == "content_block_stop":
                         if pending_tool.get("id"):
                             yield LLMDelta(

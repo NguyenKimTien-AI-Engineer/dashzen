@@ -115,9 +115,7 @@ class AuthService:
     async def change_password(self, user: User, current_password: str, new_password: str) -> None:
         if not verify_password(current_password, user.password_hash):
             raise InvalidCredentialsError()
-        await update_user_password_hash(
-            self.session, user.id, hash_password(new_password)
-        )
+        await update_user_password_hash(self.session, user.id, hash_password(new_password))
 
     async def delete_account(self, user: User, password: str) -> None:
         if not verify_password(password, user.password_hash):

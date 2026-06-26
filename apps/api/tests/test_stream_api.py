@@ -5,10 +5,10 @@ from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from httpx import AsyncClient
-
 from core.email.testing import InMemoryEmailBackend
 from core.llm.types import LLMDelta
+from httpx import AsyncClient
+
 from tests.auth_helpers import create_test_user_and_login
 
 

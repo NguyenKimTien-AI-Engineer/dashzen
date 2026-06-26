@@ -27,7 +27,12 @@ def upgrade() -> None:
         sa.Column("action", sa.String(length=64), nullable=False),
         sa.Column("value", sa.String(length=256), nullable=True),
         sa.Column("metadata_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("ix_message_actions_task_created", "message_actions", ["task_id", "created_at"])

@@ -83,14 +83,17 @@ async def spawn_agent(
 
     def record_activity(tool_name: str, args: dict, result: str) -> None:  # type: ignore[type-arg]
         from datetime import datetime
+
         if len(activities) >= ACTIVITY_COUNT_MAX:
             return
-        activities.append({
-            "tool": tool_name,
-            "args": args,
-            "result": result[:ACTIVITY_RESULT_MAX],
-            "ts": datetime.now(tz=UTC).isoformat(),
-        })
+        activities.append(
+            {
+                "tool": tool_name,
+                "args": args,
+                "result": result[:ACTIVITY_RESULT_MAX],
+                "ts": datetime.now(tz=UTC).isoformat(),
+            }
+        )
 
     try:
         result = await run_agent_loop(
@@ -117,6 +120,7 @@ async def spawn_agent(
     emit(AgentDoneEvent(call_id=call_id, status=event_status, summary=summary))
 
     from db.services.agent_run_service import upsert_agent_run
+
     message_id = ctx.current_message_id
     if message_id is not None:
         await upsert_agent_run(
@@ -130,6 +134,8 @@ async def spawn_agent(
         )
 
     status_block = format_agent_tool_result(agent_status, summary)
-    if len(result.output) <= AGENT_OUTPUT_COMPACT_THRESHOLD and parse_agent_status_block(result.output):
+    if len(result.output) <= AGENT_OUTPUT_COMPACT_THRESHOLD and parse_agent_status_block(
+        result.output
+    ):
         return result.output.strip()
     return status_block

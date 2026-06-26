@@ -1,16 +1,15 @@
 import os
 
 import pytest
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-
 from api.main import create_app
 from core.config import get_settings
 from core.email.backend import set_email_backend_override
 from core.email.testing import InMemoryEmailBackend
 from db.base import Base
 from db.session import get_db, reset_engine
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 # Test defaults — must be set before importing app settings
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-pytest-only-32b!")

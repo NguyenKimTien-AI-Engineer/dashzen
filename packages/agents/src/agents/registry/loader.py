@@ -7,10 +7,10 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from core.llm.types import ToolDefinition
 
 from agents.registry.cache import get_cached
 from agents.registry.schema import AgentDefinition
-from core.llm.types import ToolDefinition
 
 _PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts"
 
@@ -31,7 +31,7 @@ def _parse_frontmatter(text: str) -> tuple[dict, str]:  # type: ignore[type-arg]
         data = yaml.safe_load(match.group(1)) or {}
     except yaml.YAMLError:
         data = {}
-    body = text[match.end():]
+    body = text[match.end() :]
     return data, body
 
 

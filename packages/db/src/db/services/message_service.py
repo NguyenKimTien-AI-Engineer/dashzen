@@ -78,9 +78,7 @@ async def create_message(
 
 async def get_messages(db: AsyncSession, task_id: uuid.UUID) -> Sequence[Message]:
     result = await db.execute(
-        select(Message)
-        .where(Message.task_id == task_id)
-        .order_by(Message.created_at.asc())
+        select(Message).where(Message.task_id == task_id).order_by(Message.created_at.asc())
     )
     return result.scalars().all()
 
@@ -94,9 +92,7 @@ async def update_message_thinking(
 
     from db.models.message import Message
 
-    await db.execute(
-        update(Message).where(Message.id == message_id).values(thinking=thinking)
-    )
+    await db.execute(update(Message).where(Message.id == message_id).values(thinking=thinking))
     await db.flush()
 
 
@@ -106,9 +102,7 @@ async def get_messages_enriched(
     *,
     leaf_id: uuid.UUID | None = None,
 ) -> list[dict[str, Any]]:
-    result = await db.execute(
-        select(Message).where(Message.task_id == task_id)
-    )
+    result = await db.execute(select(Message).where(Message.task_id == task_id))
     all_msgs = list(result.scalars().all())
     if not all_msgs:
         return []
@@ -125,12 +119,8 @@ async def get_messages_enriched(
     return [_enrich_message(m, siblings_by_parent) for m in ordered]
 
 
-async def get_tree_path(
-    db: AsyncSession, task_id: uuid.UUID, leaf_id: uuid.UUID
-) -> list[Message]:
-    result = await db.execute(
-        select(Message).where(Message.task_id == task_id)
-    )
+async def get_tree_path(db: AsyncSession, task_id: uuid.UUID, leaf_id: uuid.UUID) -> list[Message]:
+    result = await db.execute(select(Message).where(Message.task_id == task_id))
     all_msgs = {m.id: m for m in result.scalars().all()}
     path: list[Message] = []
     current_id: uuid.UUID | None = leaf_id
@@ -144,9 +134,7 @@ async def get_tree_path(
     return path
 
 
-async def find_orphan_user_message(
-    db: AsyncSession, task_id: uuid.UUID
-) -> Message | None:
+async def find_orphan_user_message(db: AsyncSession, task_id: uuid.UUID) -> Message | None:
     result = await db.execute(
         select(Message)
         .where(Message.task_id == task_id, Message.role == "user")

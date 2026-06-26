@@ -1,0 +1,57 @@
+# Deploy placeholder — PaaS split (Option 3 from architecture plan):
+#
+#   Frontend  → Vercel      (apps/studio, Next.js 15)
+#   Backend   → Render/Fly  (apps/api, FastAPI + uvicorn)
+#   Database  → Neon/Supabase (Postgres)
+#   Redis     → Upstash      (optional)
+#   LLM       → Gemini/OpenRouter (API keys — do NOT run Ollama on free PaaS)
+#
+# Recommended setup:
+#   1. Connect GitHub repo to Vercel — root directory: apps/studio
+#   2. Create Render/Fly web service — Docker or native Python start command
+#   3. Set production secrets in each platform (not in this repo)
+#
+# This workflow is disabled until Docker/start scripts are added.
+# Trigger manually after configuring hosting.
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        default: none
+        type: choice
+        options:
+          - none
+          - api-render
+          - api-fly
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Deploy not configured
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instructions
+        run: |
+          echo "Deploy workflow is a placeholder."
+          echo ""
+          echo "Vercel (Studio): connect repo in Vercel dashboard"
+          echo "  - Root: apps/studio"
+          echo "  - Env: NEXT_PUBLIC_API_URL=https://your-api.onrender.com"
+          echo ""
+          echo "Render/Fly (API): add Dockerfile or native build"
+          echo "  - Start: uv run --package api uvicorn api.main:app --host 0.0.0.0 --port \$PORT"
+          echo "  - Env: DATABASE_URL, JWT_SECRET_KEY, LLM_PROVIDER=gemini, GEMINI_API_KEY, ..."
+          echo ""
+          echo "Selected target: ${{ github.event.inputs.target }}"
+          if [ "${{ github.event.inputs.target }}" = "none" ]; then
+            exit 0
+          fi
+          echo "Implement deploy steps for ${{ github.event.inputs.target }} before enabling."
+          exit 1

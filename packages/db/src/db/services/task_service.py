@@ -36,9 +36,7 @@ async def list_tasks(
 
 
 async def get_task(db: AsyncSession, task_id: uuid.UUID, user_id: uuid.UUID) -> Task | None:
-    result = await db.execute(
-        select(Task).where(Task.id == task_id, Task.user_id == user_id)
-    )
+    result = await db.execute(select(Task).where(Task.id == task_id, Task.user_id == user_id))
     return result.scalar_one_or_none()
 
 
@@ -55,26 +53,18 @@ async def update_task(db: AsyncSession, task_id: uuid.UUID, **fields: object) ->
 
 
 async def delete_task(db: AsyncSession, task_id: uuid.UUID, user_id: uuid.UUID) -> bool:
-    result = await db.execute(
-        delete(Task).where(Task.id == task_id, Task.user_id == user_id)
-    )
+    result = await db.execute(delete(Task).where(Task.id == task_id, Task.user_id == user_id))
     return result.rowcount > 0
 
 
-async def set_title_if_untitled(
-    db: AsyncSession, task_id: uuid.UUID, title: str
-) -> None:
+async def set_title_if_untitled(db: AsyncSession, task_id: uuid.UUID, title: str) -> None:
     await db.execute(
-        update(Task)
-        .where(Task.id == task_id, Task.title.is_(None))
-        .values(title=title)
+        update(Task).where(Task.id == task_id, Task.title.is_(None)).values(title=title)
     )
     await db.flush()
 
 
-async def sync_task_type_if_upgrade(
-    db: AsyncSession, task_id: uuid.UUID, new_type: str
-) -> bool:
+async def sync_task_type_if_upgrade(db: AsyncSession, task_id: uuid.UUID, new_type: str) -> bool:
     from sqlalchemy import or_
 
     result = await db.execute(

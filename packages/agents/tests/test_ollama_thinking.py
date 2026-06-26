@@ -1,38 +1,26 @@
 from __future__ import annotations
 
 import httpx
-
 from core.llm.thinking import (
     deltas_from_ollama_message,
     is_ollama_think_rejection,
     resolve_ollama_think_param,
     resolve_thinking_enabled,
 )
-from core.llm.types import LLMDelta
 
 
 def test_resolve_thinking_enabled_explicit_request() -> None:
-    assert resolve_thinking_enabled(
-        True, provider="ollama", ollama_thinking_enabled=False
-    )
-    assert not resolve_thinking_enabled(
-        False, provider="ollama", ollama_thinking_enabled=True
-    )
+    assert resolve_thinking_enabled(True, provider="ollama", ollama_thinking_enabled=False)
+    assert not resolve_thinking_enabled(False, provider="ollama", ollama_thinking_enabled=True)
 
 
 def test_resolve_thinking_enabled_ollama_default() -> None:
-    assert resolve_thinking_enabled(
-        None, provider="ollama", ollama_thinking_enabled=True
-    )
-    assert not resolve_thinking_enabled(
-        None, provider="ollama", ollama_thinking_enabled=False
-    )
+    assert resolve_thinking_enabled(None, provider="ollama", ollama_thinking_enabled=True)
+    assert not resolve_thinking_enabled(None, provider="ollama", ollama_thinking_enabled=False)
 
 
 def test_resolve_thinking_enabled_other_providers_default_off() -> None:
-    assert not resolve_thinking_enabled(
-        None, provider="anthropic", ollama_thinking_enabled=True
-    )
+    assert not resolve_thinking_enabled(None, provider="anthropic", ollama_thinking_enabled=True)
 
 
 def test_resolve_ollama_think_param_disabled() -> None:
@@ -48,38 +36,36 @@ def test_resolve_ollama_think_param_level() -> None:
 
 
 def test_resolve_ollama_think_param_gpt_oss() -> None:
-    assert (
-        resolve_ollama_think_param(enabled=True, level="", model="gpt-oss:20b")
-        == "medium"
-    )
-    assert (
-        resolve_ollama_think_param(enabled=True, level="low", model="gpt-oss")
-        == "low"
-    )
+    assert resolve_ollama_think_param(enabled=True, level="", model="gpt-oss:20b") == "medium"
+    assert resolve_ollama_think_param(enabled=True, level="low", model="gpt-oss") == "low"
 
 
 def test_deltas_from_ollama_message_thinking_before_content() -> None:
-    deltas = deltas_from_ollama_message({
-        "thinking": "Let me reason",
-        "content": "Answer",
-    })
+    deltas = deltas_from_ollama_message(
+        {
+            "thinking": "Let me reason",
+            "content": "Answer",
+        }
+    )
     assert [d.kind for d in deltas] == ["thinking_delta", "text_delta"]
     assert deltas[0].thinking == "Let me reason"
     assert deltas[1].text == "Answer"
 
 
 def test_deltas_from_ollama_message_tool_calls() -> None:
-    deltas = deltas_from_ollama_message({
-        "content": "",
-        "tool_calls": [
-            {
-                "function": {
-                    "name": "read_file",
-                    "arguments": {"path": "spec.md"},
+    deltas = deltas_from_ollama_message(
+        {
+            "content": "",
+            "tool_calls": [
+                {
+                    "function": {
+                        "name": "read_file",
+                        "arguments": {"path": "spec.md"},
+                    }
                 }
-            }
-        ],
-    })
+            ],
+        }
+    )
     assert len(deltas) == 1
     assert deltas[0].kind == "tool_call"
     assert deltas[0].tool_name == "read_file"

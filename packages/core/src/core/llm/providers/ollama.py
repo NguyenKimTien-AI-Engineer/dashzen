@@ -57,12 +57,14 @@ def _normalize_tool_calls(tool_calls: list[dict]) -> list[dict]:  # type: ignore
                 args = json.loads(args)
             except json.JSONDecodeError:
                 args = {}
-        normalized.append({
-            "function": {
-                "name": tc.get("name", ""),
-                "arguments": args if isinstance(args, dict) else {},
+        normalized.append(
+            {
+                "function": {
+                    "name": tc.get("name", ""),
+                    "arguments": args if isinstance(args, dict) else {},
+                }
             }
-        })
+        )
     return normalized
 
 
@@ -71,8 +73,7 @@ def _messages_to_ollama(messages: list[LLMMessage]) -> list[dict]:  # type: igno
     for m in messages:
         if isinstance(m.content, list):
             content = " ".join(
-                part.get("text", "") if isinstance(part, dict) else str(part)
-                for part in m.content
+                part.get("text", "") if isinstance(part, dict) else str(part) for part in m.content
             )
         else:
             content = m.content or ""
@@ -277,10 +278,7 @@ class OllamaProvider:
                         yield delta
                     return
                 last_exc = exc
-                if (
-                    exc.response.status_code not in _RETRYABLE_STATUS
-                    or attempt >= _MAX_RETRIES - 1
-                ):
+                if exc.response.status_code not in _RETRYABLE_STATUS or attempt >= _MAX_RETRIES - 1:
                     raise
                 await asyncio.sleep(2**attempt)
         if last_exc:

@@ -10,9 +10,7 @@ from db.base import Base
 
 class File(Base):
     __tablename__ = "files"
-    __table_args__ = (
-        Index("ix_files_task_name", "task_id", "name"),
-    )
+    __table_args__ = (Index("ix_files_task_name", "task_id", "name"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     task_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)

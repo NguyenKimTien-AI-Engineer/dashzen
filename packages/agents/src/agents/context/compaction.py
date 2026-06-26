@@ -17,7 +17,11 @@ from db.services.message_service import create_message, get_tree_path
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.context.accounting import estimate_chars
-from agents.context.history import build_compact_summary_message, build_history, microcompact_tool_messages
+from agents.context.history import (
+    build_compact_summary_message,
+    build_history,
+    microcompact_tool_messages,
+)
 
 log = structlog.get_logger()
 

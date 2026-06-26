@@ -54,8 +54,6 @@ async def execute(args: dict, ctx: ToolContext) -> str:  # type: ignore[type-arg
         "path": path,
         "columns": columns,
         "row_count": max(0, len(rows) - 1),
-        "preview_rows": [
-            dict(zip(headers, row, strict=False)) for row in data_rows
-        ],
+        "preview_rows": [dict(zip(headers, row, strict=False)) for row in data_rows],
     }
     return json.dumps(preview, ensure_ascii=False, indent=2)

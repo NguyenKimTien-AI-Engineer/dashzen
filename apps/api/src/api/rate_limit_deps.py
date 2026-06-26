@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException
-
 from agents.streaming.rate_limit import check_rate_limit, get_bucket_config, retry_after_seconds
 from db.models.user import User
+from fastapi import Depends, HTTPException
 
 from api.deps import get_current_user
 

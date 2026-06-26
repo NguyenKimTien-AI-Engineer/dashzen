@@ -54,17 +54,19 @@ def _messages_to_gemini(
 
         if message.role == "tool":
             fn_name = call_id_to_name.get(message.tool_call_id or "", "unknown")
-            contents.append({
-                "role": "user",
-                "parts": [
-                    {
-                        "functionResponse": {
-                            "name": fn_name,
-                            "response": {"result": text},
+            contents.append(
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "functionResponse": {
+                                "name": fn_name,
+                                "response": {"result": text},
+                            }
                         }
-                    }
-                ],
-            })
+                    ],
+                }
+            )
             continue
 
         if message.tool_calls:
@@ -76,12 +78,14 @@ def _messages_to_gemini(
                 fn_name = str(tool_call.get("name", ""))
                 if call_id and fn_name:
                     call_id_to_name[call_id] = fn_name
-                parts.append({
-                    "functionCall": {
-                        "name": fn_name,
-                        "args": tool_call.get("input", {}),
+                parts.append(
+                    {
+                        "functionCall": {
+                            "name": fn_name,
+                            "args": tool_call.get("input", {}),
+                        }
                     }
-                })
+                )
             contents.append({"role": "model", "parts": parts})
             continue
 
@@ -132,9 +136,7 @@ class GeminiProvider:
         max_tokens: int = 4096,
         temperature: float = 0.3,
     ) -> str:
-        payload = self._build_payload(
-            messages, [], max_tokens=max_tokens, temperature=temperature
-        )
+        payload = self._build_payload(messages, [], max_tokens=max_tokens, temperature=temperature)
         async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
                 self._model_url("generateContent"),

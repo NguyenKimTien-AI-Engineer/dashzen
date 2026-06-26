@@ -4,27 +4,25 @@ import asyncio
 import uuid
 
 import pytest
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker
-
 from api.main import create_app
 from core.config import get_settings
 from core.email.testing import InMemoryEmailBackend
 from db.models.user import User
 from db.session import get_db
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
 from tests.auth_helpers import (
+    refresh_token_from_client,
     register_user,
     register_verify_login,
-    refresh_token_from_client,
     verify_user,
 )
 
 
 @pytest.mark.asyncio
-async def test_full_auth_lifecycle(
-    client: AsyncClient, mail_backend: InMemoryEmailBackend
-) -> None:
+async def test_full_auth_lifecycle(client: AsyncClient, mail_backend: InMemoryEmailBackend) -> None:
     settings = get_settings()
     email = f"lifecycle-{uuid.uuid4().hex[:8]}@example.com"
     password = "securepass123"
@@ -34,18 +32,14 @@ async def test_full_auth_lifecycle(
     assert client.cookies.get(settings.access_cookie_name) is None
 
     # 2. Cannot login before verify
-    pre_login = await client.post(
-        "/v1/auth/login", json={"email": email, "password": password}
-    )
+    pre_login = await client.post("/v1/auth/login", json={"email": email, "password": password})
     assert pre_login.status_code == 403
 
     # 3. Verify email
     await verify_user(client, email, code)
 
     # 4. Login — session established
-    login_res = await client.post(
-        "/v1/auth/login", json={"email": email, "password": password}
-    )
+    login_res = await client.post("/v1/auth/login", json={"email": email, "password": password})
     assert login_res.status_code == 200
     assert login_res.json()["user"]["email_verified"] is True
 
@@ -172,16 +166,12 @@ async def test_verify_then_login_twice_issues_new_refresh_tokens(
     code = await register_user(client, mail_backend, email, password)
     await verify_user(client, email, code)
 
-    login_1 = await client.post(
-        "/v1/auth/login", json={"email": email, "password": password}
-    )
+    login_1 = await client.post("/v1/auth/login", json={"email": email, "password": password})
     assert login_1.status_code == 200
     refresh_1 = refresh_token_from_client(client, settings)
 
     client.cookies.clear()
-    login_2 = await client.post(
-        "/v1/auth/login", json={"email": email, "password": password}
-    )
+    login_2 = await client.post("/v1/auth/login", json={"email": email, "password": password})
     assert login_2.status_code == 200
     refresh_2 = refresh_token_from_client(client, settings)
 

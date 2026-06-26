@@ -4,14 +4,14 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from core.email.testing import InMemoryEmailBackend
+from db.models.email_verification import EmailVerificationCode
+from db.models.user import User
 from httpx import AsyncClient
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from core.email.testing import InMemoryEmailBackend
-from db.models.email_verification import EmailVerificationCode
-from db.models.user import User
-from tests.auth_helpers import register_user, register_verify_login, verify_user
+from tests.auth_helpers import register_user, register_verify_login
 
 
 @pytest.mark.asyncio

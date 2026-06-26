@@ -10,12 +10,12 @@ from db.services.file_service import (
     restore_file_version,
     upsert_workspace_file,
 )
-from db.services.message_service import get_messages_enriched
 from db.services.message_action_service import (
     create_message_action,
     get_latest_feedback_by_message,
     message_belongs_to_task,
 )
+from db.services.message_service import get_messages_enriched
 from db.services.project_service import get_project
 from db.services.task_service import (
     create_task,

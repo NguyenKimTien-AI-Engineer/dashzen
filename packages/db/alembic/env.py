@@ -3,20 +3,19 @@ from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy import pool
-from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
-
 from core.config import get_settings
 from db.base import Base
 from db.models.agent_run import AgentRun  # noqa: F401
 from db.models.email_verification import EmailVerificationCode  # noqa: F401
 from db.models.file import File  # noqa: F401
 from db.models.message import Message  # noqa: F401
-from db.models.refresh_token import RefreshToken  # noqa: F401
 from db.models.project import Project  # noqa: F401
+from db.models.refresh_token import RefreshToken  # noqa: F401
 from db.models.task import Task  # noqa: F401
 from db.models.user import User  # noqa: F401
+from sqlalchemy import pool
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 config = context.config
 if config.config_file_name is not None:

@@ -18,9 +18,7 @@ async def create_project(db: AsyncSession, user_id: uuid.UUID, name: str) -> Pro
 
 async def list_projects(db: AsyncSession, user_id: uuid.UUID) -> list[Project]:
     result = await db.execute(
-        select(Project)
-        .where(Project.user_id == user_id)
-        .order_by(Project.updated_at.desc())
+        select(Project).where(Project.user_id == user_id).order_by(Project.updated_at.desc())
     )
     return list(result.scalars().all())
 
@@ -49,9 +47,7 @@ async def update_project(
     return await get_project(db, project_id, user_id)
 
 
-async def delete_project(
-    db: AsyncSession, project_id: uuid.UUID, user_id: uuid.UUID
-) -> bool:
+async def delete_project(db: AsyncSession, project_id: uuid.UUID, user_id: uuid.UUID) -> bool:
     result = await db.execute(
         delete(Project).where(Project.id == project_id, Project.user_id == user_id)
     )

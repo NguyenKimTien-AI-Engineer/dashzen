@@ -180,9 +180,7 @@ async def change_password(
     session: AsyncSession = Depends(get_db),
 ) -> OkResponse:
     service = AuthService(session)
-    await service.change_password(
-        current_user, body.current_password, body.new_password
-    )
+    await service.change_password(current_user, body.current_password, body.new_password)
     return OkResponse()
 
 

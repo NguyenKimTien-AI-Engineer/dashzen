@@ -123,26 +123,31 @@ async def run_agent_loop(
                         "input": args,
                     }
                     tool_calls_raw.append(tc_entry)
-                    emit(AgentToolEvent(
-                        call_id=parent_call_id,
-                        tool_call_id=tc_entry["id"],
-                        name=tc_entry["name"],
-                        args=args,
-                    ))
+                    emit(
+                        AgentToolEvent(
+                            call_id=parent_call_id,
+                            tool_call_id=tc_entry["id"],
+                            name=tc_entry["name"],
+                            args=args,
+                        )
+                    )
                 elif delta.kind == "done":
                     break
 
             if text_acc:
                 output_text = text_acc
 
-            messages.append(LLMMessage(
-                role="assistant",
-                content=text_acc,
-                tool_calls=[
-                    {"id": tc["id"], "name": tc["name"], "input": tc["input"]}
-                    for tc in tool_calls_raw
-                ] or None,
-            ))
+            messages.append(
+                LLMMessage(
+                    role="assistant",
+                    content=text_acc,
+                    tool_calls=[
+                        {"id": tc["id"], "name": tc["name"], "input": tc["input"]}
+                        for tc in tool_calls_raw
+                    ]
+                    or None,
+                )
+            )
 
             if not tool_calls_raw:
                 break
@@ -152,17 +157,21 @@ async def run_agent_loop(
                 call = ToolCall(call_id=tc["id"], name=tc["name"], args=tc["input"])
                 tools_used.append(tc["name"])
                 result = await _execute_tool(call, ctx, detector, on_tool_done)
-                emit(AgentResultEvent(
-                    call_id=parent_call_id,
-                    tool_call_id=tc["id"],
-                    status="success",
-                    result=result[:500],
-                ))
-                tool_result_messages.append(LLMMessage(
-                    role="tool",
-                    content=result,
-                    tool_call_id=tc["id"],
-                ))
+                emit(
+                    AgentResultEvent(
+                        call_id=parent_call_id,
+                        tool_call_id=tc["id"],
+                        status="success",
+                        result=result[:500],
+                    )
+                )
+                tool_result_messages.append(
+                    LLMMessage(
+                        role="tool",
+                        content=result,
+                        tool_call_id=tc["id"],
+                    )
+                )
             messages.extend(tool_result_messages)
 
     try:

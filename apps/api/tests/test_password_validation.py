@@ -1,5 +1,4 @@
 import pytest
-
 from core.auth.validation import PasswordValidationError, validate_register_password
 
 

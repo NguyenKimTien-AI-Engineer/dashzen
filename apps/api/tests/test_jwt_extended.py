@@ -5,7 +5,6 @@ from uuid import uuid4
 
 import jwt
 import pytest
-
 from core.auth.jwt import create_access_token, create_refresh_token, decode_token
 from core.config import get_settings
 from core.exceptions import TokenExpiredError, TokenInvalidError, TokenTypeMismatchError

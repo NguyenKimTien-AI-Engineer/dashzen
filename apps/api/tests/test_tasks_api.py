@@ -3,9 +3,9 @@ from __future__ import annotations
 import uuid
 
 import pytest
+from core.email.testing import InMemoryEmailBackend
 from httpx import AsyncClient
 
-from core.email.testing import InMemoryEmailBackend
 from tests.auth_helpers import create_test_user_and_login
 
 
@@ -29,7 +29,9 @@ async def test_task_lifecycle(client: AsyncClient, mail_backend: InMemoryEmailBa
     assert resp.status_code == 200
     assert resp.json()["id"] == task_id
 
-    resp = await client.patch(f"/v1/tasks/{task_id}", json={"title": "My Dashboard"}, headers=headers)
+    resp = await client.patch(
+        f"/v1/tasks/{task_id}", json={"title": "My Dashboard"}, headers=headers
+    )
     assert resp.status_code == 200
     assert resp.json()["title"] == "My Dashboard"
 
@@ -74,7 +76,9 @@ async def test_task_ownership(client: AsyncClient, mail_backend: InMemoryEmailBa
 
 
 @pytest.mark.asyncio
-async def test_stop_nonexistent_task(client: AsyncClient, mail_backend: InMemoryEmailBackend) -> None:
+async def test_stop_nonexistent_task(
+    client: AsyncClient, mail_backend: InMemoryEmailBackend
+) -> None:
     headers = await create_test_user_and_login(client, mail_backend, suffix="stop")
     fake_id = str(uuid.uuid4())
     resp = await client.post(f"/v1/tasks/{fake_id}/stop", headers=headers)

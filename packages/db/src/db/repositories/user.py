@@ -1,10 +1,9 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
+from db.models.user import User
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from db.models.user import User
 
 
 async def get_user_by_email(session: AsyncSession, email: str) -> User | None:
@@ -39,19 +38,13 @@ async def update_last_login(session: AsyncSession, user_id: UUID) -> None:
 async def mark_email_verified(session: AsyncSession, user_id: UUID) -> None:
     now = datetime.now(UTC)
     await session.execute(
-        update(User)
-        .where(User.id == user_id)
-        .values(email_verified=True, email_verified_at=now)
+        update(User).where(User.id == user_id).values(email_verified=True, email_verified_at=now)
     )
     await session.commit()
 
 
-async def update_user_display_name(
-    session: AsyncSession, user_id: UUID, display_name: str
-) -> User:
-    await session.execute(
-        update(User).where(User.id == user_id).values(display_name=display_name)
-    )
+async def update_user_display_name(session: AsyncSession, user_id: UUID, display_name: str) -> User:
+    await session.execute(update(User).where(User.id == user_id).values(display_name=display_name))
     await session.commit()
     user = await get_user_by_id(session, user_id)
     assert user is not None
@@ -62,9 +55,7 @@ async def update_user_display_name(
 async def update_user_avatar_key(
     session: AsyncSession, user_id: UUID, avatar_key: str | None
 ) -> User:
-    await session.execute(
-        update(User).where(User.id == user_id).values(avatar_key=avatar_key)
-    )
+    await session.execute(update(User).where(User.id == user_id).values(avatar_key=avatar_key))
     await session.commit()
     user = await get_user_by_id(session, user_id)
     assert user is not None

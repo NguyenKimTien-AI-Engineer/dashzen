@@ -1,3 +1,4 @@
+from core.config import get_settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
@@ -5,18 +6,17 @@ from slowapi.errors import RateLimitExceeded
 
 from api.errors import register_exception_handlers
 from api.rate_limit import limiter
+from api.routes.artifacts import router as artifacts_router
 from api.routes.auth import router as auth_router
 from api.routes.compact import router as compact_router
 from api.routes.export import router as export_router
 from api.routes.gates import router as gates_router
 from api.routes.llm import router as llm_router
-from api.routes.stream import router as stream_router
-from api.routes.artifacts import router as artifacts_router
 from api.routes.projects import router as projects_router
+from api.routes.stream import router as stream_router
 from api.routes.tasks import router as tasks_router
 from api.routes.upload import router as upload_router
 from api.routes.users import router as users_router
-from core.config import get_settings
 
 
 def create_app() -> FastAPI:

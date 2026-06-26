@@ -5,7 +5,6 @@ import json
 import uuid
 
 import pytest
-
 from agents.streaming.events import MainTextEvent, StreamDoneEvent, serialize_sse
 from agents.streaming.session import StreamSession, StreamSessionManager
 

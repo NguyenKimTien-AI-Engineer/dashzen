@@ -1,10 +1,9 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
+from db.models.email_verification import EmailVerificationCode
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from db.models.email_verification import EmailVerificationCode
 
 
 async def revoke_active_codes_for_user(session: AsyncSession, user_id: UUID) -> None:

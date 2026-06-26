@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-import structlog
 from typing import Any
+
+import structlog
+from tools.context import ToolContext
 
 from agents.gates.gate_service import init_gate, register_gate
 from agents.orchestration.constants import (
@@ -13,7 +15,6 @@ from agents.tools.arg_normalize import normalize_tool_args
 from agents.tools.loop_detection import LoopDetector
 from agents.tools.partition import ToolCall
 from agents.tools.registry import is_ask_bypass, is_read_only
-from tools.context import ToolContext
 
 log = structlog.get_logger()
 
@@ -158,7 +159,11 @@ async def execute_tool_pipeline(
     if gate_feedback:
         result = f"{result}\n\n[User feedback] {gate_feedback}"
 
-    if call.name == "write_file" and ctx.agent_name is not None and not result.startswith("[Error]"):
+    if (
+        call.name == "write_file"
+        and ctx.agent_name is not None
+        and not result.startswith("[Error]")
+    ):
         path = str(call.args.get("path", "")).strip()
         if path and "written" in result.lower():
             ctx.agent_written_paths.add(path)

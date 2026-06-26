@@ -13,6 +13,7 @@ def _default_output_path(agent_name: str | None) -> str | None:
         return None
     return defn.output_file.strip()
 
+
 _PATH_ALIASES = ("path", "file", "filename", "file_name", "name", "file_path", "filepath")
 _CONTENT_ALIASES = (
     "content",

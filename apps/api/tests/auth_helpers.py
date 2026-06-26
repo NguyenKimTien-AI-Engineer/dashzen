@@ -1,9 +1,8 @@
 import uuid
 
-from httpx import AsyncClient
-
 from core.config import Settings, get_settings
 from core.email.testing import InMemoryEmailBackend
+from httpx import AsyncClient
 
 
 async def register_user(

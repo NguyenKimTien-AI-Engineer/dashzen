@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
-
 from agents.tools.loop_detection import LoopDetector
 from agents.tools.partition import ToolCall
 from agents.tools.pipeline import execute_tool_pipeline
@@ -49,7 +48,9 @@ async def test_orchestrator_list_file_limited_to_once(monkeypatch: pytest.Monkey
 
 
 @pytest.mark.asyncio
-async def test_subagent_write_file_blocked_on_duplicate_path(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_subagent_write_file_blocked_on_duplicate_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     ctx = _tool_ctx(agent_name="data-binder")
     ctx.agent_written_paths.add("bindings.md")
 

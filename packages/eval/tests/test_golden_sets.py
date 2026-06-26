@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from core.schemas.dashboard_spec import parse_spec_md, validate_dashboard_html, validate_page_tsx
 
 _FIXTURES = Path(__file__).resolve().parent.parent / "src" / "eval" / "fixtures"

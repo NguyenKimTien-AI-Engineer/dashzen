@@ -27,7 +27,9 @@ class Task(Base):
         ForeignKey("projects.id", ondelete="SET NULL"),
         nullable=True,
     )
-    starred: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    starred: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
     type: Mapped[str | None] = mapped_column(String(50), nullable=True)

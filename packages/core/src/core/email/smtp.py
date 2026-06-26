@@ -3,7 +3,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import aiosmtplib
-
 from core.config import Settings
 from core.email.templates.verification import render_verification_email
 

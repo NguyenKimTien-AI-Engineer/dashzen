@@ -1,13 +1,13 @@
 import uuid
 
 import pytest
+from core.config import get_settings
+from core.email.testing import InMemoryEmailBackend
+from db.models.user import User
 from httpx import AsyncClient
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from core.config import get_settings
-from core.email.testing import InMemoryEmailBackend
-from db.models.user import User
 from tests.auth_helpers import register_verify_login
 
 

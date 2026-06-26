@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import httpx
-import pytest
-
 from agents.orchestration.llm_errors import format_llm_error
 
 

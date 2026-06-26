@@ -21,19 +21,23 @@ async def execute(args: dict, ctx: ToolContext) -> str:  # type: ignore[type-arg
 
     for f in db_files:
         if f.name not in ctx.artifact_buffer.keys():
-            result.append({
-                "name": f.name,
-                "size": f.size,
-                "kind": f.kind,
-            })
+            result.append(
+                {
+                    "name": f.name,
+                    "size": f.size,
+                    "kind": f.kind,
+                }
+            )
 
     for name in ctx.artifact_buffer.keys():
         content = ctx.artifact_buffer.get(name) or ""
-        result.append({
-            "name": name,
-            "size": len(content.encode()),
-            "kind": "text",
-            "staged": True,
-        })
+        result.append(
+            {
+                "name": name,
+                "size": len(content.encode()),
+                "kind": "text",
+                "staged": True,
+            }
+        )
 
     return json.dumps(result, ensure_ascii=False)

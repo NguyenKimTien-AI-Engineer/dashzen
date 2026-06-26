@@ -3,11 +3,11 @@ from __future__ import annotations
 import uuid
 
 import pytest
-from httpx import AsyncClient
-
 from core.email.testing import InMemoryEmailBackend
 from db.services.file_service import upsert_workspace_file
 from db.session import get_db
+from httpx import AsyncClient
+
 from tests.auth_helpers import create_test_user_and_login
 
 _DASHBOARD_HTML = """<!DOCTYPE html>

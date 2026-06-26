@@ -78,11 +78,13 @@ def build_history(db_messages: Sequence[Message]) -> list[LLMMessage]:
             content: str | list = thinking if thinking else text  # type: ignore[assignment]
             if thinking and text:
                 content = text
-            result.append(LLMMessage(
-                role="assistant",
-                content=content,
-                tool_calls=tool_calls,
-            ))
+            result.append(
+                LLMMessage(
+                    role="assistant",
+                    content=content,
+                    tool_calls=tool_calls,
+                )
+            )
         elif msg.role == "tool":
             result.append(LLMMessage(role="tool", content=msg.content))
 
@@ -116,11 +118,13 @@ def microcompact_tool_messages(messages: list[LLMMessage]) -> list[LLMMessage]:
     compacted: list[LLMMessage] = []
     for i, msg in enumerate(messages):
         if i in old_indices and isinstance(msg.content, str) and msg.content != _TOOL_PLACEHOLDER:
-            compacted.append(LLMMessage(
-                role=msg.role,
-                content=_TOOL_PLACEHOLDER,
-                tool_call_id=msg.tool_call_id,
-            ))
+            compacted.append(
+                LLMMessage(
+                    role=msg.role,
+                    content=_TOOL_PLACEHOLDER,
+                    tool_call_id=msg.tool_call_id,
+                )
+            )
         else:
             compacted.append(msg)
     return compacted

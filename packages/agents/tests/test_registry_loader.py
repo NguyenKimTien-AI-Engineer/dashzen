@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from agents.registry.loader import get_agent, load_agent_registry
 from agents.tools.pipeline import get_tool_definition
 from agents.tools.registry import resolve_agent_tools

@@ -4,14 +4,15 @@ import json
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from tools.data.schema_inspector import execute
 
 
 @pytest.mark.asyncio
 async def test_schema_inspector_reads_staged_csv() -> None:
     ctx = MagicMock()
-    ctx.artifact_buffer.get = lambda name: "region,amount\nNorth,10\nSouth,20" if name == "sales.csv" else None
+    ctx.artifact_buffer.get = lambda name: (
+        "region,amount\nNorth,10\nSouth,20" if name == "sales.csv" else None
+    )
     ctx.artifact_buffer.keys = lambda: ["sales.csv"]
     ctx.db = MagicMock()
     ctx.task_id = "task"

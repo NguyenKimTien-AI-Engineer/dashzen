@@ -6,10 +6,14 @@ import uuid
 from dataclasses import replace
 
 import structlog
-from agents.orchestration.llm_errors import format_llm_error
 from core.llm.factory import get_llm_client
 from core.llm.types import LLMMessage
-from db.services.message_service import create_message, find_orphan_user_message, get_messages, update_message_thinking
+from db.services.message_service import (
+    create_message,
+    find_orphan_user_message,
+    get_messages,
+    update_message_thinking,
+)
 from db.services.task_service import get_task
 from tools.context import ToolContext
 
@@ -24,6 +28,7 @@ from agents.orchestration.constants import (
     TOOL_REJECTED_RESULT,
 )
 from agents.orchestration.exec_parallel import execute_tool_calls
+from agents.orchestration.llm_errors import format_llm_error
 from agents.orchestration.runtime import RuntimeContext
 from agents.orchestration.spawn import spawn_agent
 from agents.streaming.events import (
@@ -49,7 +54,11 @@ async def main_loop(
 ) -> None:
     from agents.orchestration.activity_log import ActivityLogAccumulator, encode_activity_log
     from agents.orchestration.task_title import try_set_title
-    from agents.registry.loader import build_orchestrator_tool_definitions, load_system_prompt, load_workflow
+    from agents.registry.loader import (
+        build_orchestrator_tool_definitions,
+        load_system_prompt,
+        load_workflow,
+    )
 
     tool_defs = build_orchestrator_tool_definitions("main")
     client = get_llm_client()
@@ -133,9 +142,7 @@ async def main_loop(
                 parent_id=current_parent,
             )
 
-            memory_state = await read_memory(
-                ctx.db, ctx.task_id, ctx.artifact_buffer
-            )
+            memory_state = await read_memory(ctx.db, ctx.task_id, ctx.artifact_buffer)
 
             memory_content = ctx.artifact_buffer.get("memory.md") or ""
             if not memory_content:
@@ -145,9 +152,7 @@ async def main_loop(
                 if memory_file and memory_file.content:
                     memory_content = memory_file.content
             workflow_content = (
-                load_workflow(memory_state.type, memory_state.phase)
-                if memory_state.phase
-                else ""
+                load_workflow(memory_state.type, memory_state.phase) if memory_state.phase else ""
             )
             context_msg = LLMMessage(
                 role="user",
@@ -185,9 +190,9 @@ async def main_loop(
                         "input": args,
                     }
                     tool_calls_raw.append(tc_entry)
-                    emit_logged(MainToolEvent(
-                        call_id=tc_entry["id"], name=tc_entry["name"], args=args
-                    ))
+                    emit_logged(
+                        MainToolEvent(call_id=tc_entry["id"], name=tc_entry["name"], args=args)
+                    )
                 elif delta.kind == "done":
                     prompt_tokens = delta.prompt_tokens
                     break
@@ -269,17 +274,15 @@ async def main_loop(
                     )
                     tool_results[sc.call_id] = agent_result
                     read_cache.invalidate_workspace_listing()
-                    await ctx.artifact_buffer.persist_staged(
-                        ctx.db, ctx.task_id, asst_msg.id
-                    )
+                    await ctx.artifact_buffer.persist_staged(ctx.db, ctx.task_id, asst_msg.id)
 
             for tc in tool_calls_raw:
                 result_str = tool_results.get(tc["id"], "[Error] No result.")
                 if result_str == TOOL_REJECTED_RESULT:
                     tool_rejected = True
-                emit_logged(MainResultEvent(
-                    call_id=tc["id"], status="success", result=result_str[:500]
-                ))
+                emit_logged(
+                    MainResultEvent(call_id=tc["id"], status="success", result=result_str[:500])
+                )
                 await create_message(
                     ctx.db,
                     task_id=ctx.task_id,
@@ -289,15 +292,17 @@ async def main_loop(
                 )
             await ctx.db.commit()
 
-            messages.append(LLMMessage(
-                role="assistant", content=text_acc, tool_calls=tool_calls_for_db
-            ))
+            messages.append(
+                LLMMessage(role="assistant", content=text_acc, tool_calls=tool_calls_for_db)
+            )
             for tc in tool_calls_raw:
-                messages.append(LLMMessage(
-                    role="tool",
-                    content=tool_results.get(tc["id"], ""),
-                    tool_call_id=tc["id"],
-                ))
+                messages.append(
+                    LLMMessage(
+                        role="tool",
+                        content=tool_results.get(tc["id"], ""),
+                        tool_call_id=tc["id"],
+                    )
+                )
             current_parent = asst_msg.id
 
             if tool_rejected:

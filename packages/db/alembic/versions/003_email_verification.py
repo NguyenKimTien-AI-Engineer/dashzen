@@ -22,7 +22,9 @@ def upgrade() -> None:
         "users",
         sa.Column("email_verified", sa.Boolean(), nullable=False, server_default=sa.text("false")),
     )
-    op.add_column("users", sa.Column("email_verified_at", sa.DateTime(timezone=True), nullable=True))
+    op.add_column(
+        "users", sa.Column("email_verified_at", sa.DateTime(timezone=True), nullable=True)
+    )
     op.execute("UPDATE users SET email_verified = true WHERE email_verified = false")
 
     op.create_table(
@@ -52,7 +54,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_email_verification_codes_user_id"), table_name="email_verification_codes")
+    op.drop_index(
+        op.f("ix_email_verification_codes_user_id"), table_name="email_verification_codes"
+    )
     op.drop_table("email_verification_codes")
     op.drop_column("users", "email_verified_at")
     op.drop_column("users", "email_verified")

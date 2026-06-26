@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import httpx
-
 from core.config import get_settings
 
 _NETWORK_ERRORS = (

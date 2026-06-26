@@ -26,22 +26,28 @@ def _messages_to_openai(messages: list[LLMMessage]) -> list[dict]:  # type: igno
     out = []
     for m in messages:
         if m.role == "tool":
-            out.append({
-                "role": "tool",
-                "tool_call_id": m.tool_call_id,
-                "content": m.content if isinstance(m.content, str) else str(m.content),
-            })
+            out.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": m.tool_call_id,
+                    "content": m.content if isinstance(m.content, str) else str(m.content),
+                }
+            )
         elif m.tool_calls:
-            out.append({
-                "role": "assistant",
-                "content": m.content if isinstance(m.content, str) else None,
-                "tool_calls": m.tool_calls,
-            })
+            out.append(
+                {
+                    "role": "assistant",
+                    "content": m.content if isinstance(m.content, str) else None,
+                    "tool_calls": m.tool_calls,
+                }
+            )
         else:
-            out.append({
-                "role": m.role,
-                "content": m.content if isinstance(m.content, str) else str(m.content),
-            })
+            out.append(
+                {
+                    "role": m.role,
+                    "content": m.content if isinstance(m.content, str) else str(m.content),
+                }
+            )
     return out
 
 

@@ -6,7 +6,7 @@ import time
 import uuid
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -22,6 +22,8 @@ _TERMINAL_SSE_MARKERS = ('"type":"stream_done"', '"type":"stream_error"')
 
 def _has_terminal_event(events: list[str]) -> bool:
     return any(marker in sse for sse in events for marker in _TERMINAL_SSE_MARKERS)
+
+
 _MAX_BUFFERED_EVENTS = 10_000
 
 RunState = Literal["running", "done", "error"]
@@ -49,7 +51,7 @@ class StreamSession:
     def push_event(self, sse: str) -> None:
         self.events.append(sse)
         if len(self.events) > _MAX_BUFFERED_EVENTS:
-            self.events = self.events[-_MAX_BUFFERED_EVENTS :]
+            self.events = self.events[-_MAX_BUFFERED_EVENTS:]
         for queue in list(self.subscriber_queues):
             with contextlib.suppress(asyncio.QueueFull):
                 queue.put_nowait(sse)
@@ -142,9 +144,10 @@ class StreamSessionManager:
         thinking_enabled: bool,
         user_instructions: str,
     ) -> None:
+        from db.session import get_session_factory
+
         from agents.gates.gate_service import unregister_all_gates
         from agents.orchestration.main_loop import main_loop
-        from db.session import get_session_factory
 
         task_id = session.task_id
         abort_signal = get_or_create_abort_signal(task_id)

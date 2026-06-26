@@ -5,21 +5,17 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 import pytest
+from core.config import get_settings
+from core.email.testing import InMemoryEmailBackend
+from db.models.user import User
 from httpx import AsyncClient
 from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from core.config import get_settings
-from core.email.testing import InMemoryEmailBackend
-from db.models.email_verification import EmailVerificationCode
-from db.models.user import User
 from tests.auth_helpers import (
     access_token_from_client,
-    login_user,
-    register_user,
-    register_verify_login,
     refresh_token_from_client,
-    verify_user,
+    register_verify_login,
 )
 
 

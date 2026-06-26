@@ -51,7 +51,5 @@ async def upsert_agent_run(
 
 
 async def get_agent_runs(db: AsyncSession, message_id: uuid.UUID) -> Sequence[AgentRun]:
-    result = await db.execute(
-        select(AgentRun).where(AgentRun.message_id == message_id)
-    )
+    result = await db.execute(select(AgentRun).where(AgentRun.message_id == message_id))
     return result.scalars().all()

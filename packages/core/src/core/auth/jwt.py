@@ -4,7 +4,6 @@ from typing import Literal
 from uuid import UUID, uuid4
 
 import jwt
-
 from core.config import Settings, get_settings
 from core.exceptions import TokenExpiredError, TokenInvalidError, TokenTypeMismatchError
 

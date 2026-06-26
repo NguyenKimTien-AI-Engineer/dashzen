@@ -1,10 +1,10 @@
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar
-
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from typing import Any, TypeVar
 
 from core.config import get_settings
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 limiter = Limiter(key_func=get_remote_address)
 

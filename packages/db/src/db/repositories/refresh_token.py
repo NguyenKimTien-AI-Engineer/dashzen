@@ -1,10 +1,9 @@
-from datetime import UTC, datetime
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from db.models.refresh_token import RefreshToken
+from sqlalchemy import update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def store_refresh_token(
@@ -25,9 +24,7 @@ async def get_refresh_token(session: AsyncSession, jti: str) -> RefreshToken | N
 
 
 async def revoke_refresh_token(session: AsyncSession, jti: str) -> None:
-    await session.execute(
-        update(RefreshToken).where(RefreshToken.jti == jti).values(revoked=True)
-    )
+    await session.execute(update(RefreshToken).where(RefreshToken.jti == jti).values(revoked=True))
     await session.commit()
 
 
