@@ -2,7 +2,13 @@
 name: dashboard-planner
 displayName: Dashboard Planner
 description: Transform user intent into a structured dashboard spec — widgets, metrics, filters, and data requirements.
-tools: read_file, write_file, list_file, search_components, schema_inspector, csv_preview
+tools:
+  - read_file
+  - write_file
+  - list_file
+  - search_components
+  - schema_inspector
+  - csv_preview
 maxTurns: 20
 maxTokens: 32000
 model: null

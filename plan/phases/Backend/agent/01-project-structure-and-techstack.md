@@ -995,4 +995,3 @@ Chi tiết SSE schema & guards: §12. Auth (JWT MVP → better-auth phase 2): xe
 2. `04-dashboard-spec-schema.md` — Pydantic models + JSON Schema export (Persistence ⑩)
 3. `05-mvp-scope.md` — Scope P0–P1, promote/demote từ gap audit
 4. `06-api-contracts.md` — OpenAPI + SSE schema ⑨ + rate limits + branching API
-

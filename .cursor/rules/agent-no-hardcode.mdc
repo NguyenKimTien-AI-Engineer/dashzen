@@ -1,0 +1,112 @@
+---
+description: Agent behavior must come from prompts (MD), not hardcoded strings in Python
+globs: packages/agents/**/*
+alwaysApply: true
+---
+
+# Agent behavior — no hardcode
+
+> Anything the user reads in chat must be LLM-generated from prompt MD. Python is plumbing only.
+
+## Golden rule
+
+- User-visible chat content → **LLM-generated from prompts**
+- Never emit a fixed string from Python as if it were model output
+
+## Behavior belongs in MD
+
+| Layer | Path | Owns |
+|-------|------|------|
+| Orchestrator | `system/system-main.md` | tone, delegation, completion policy |
+| Sub-agent | `agents/<name>.md` | role, output format, file conventions |
+| Workflow | `workflows/<domain>/*.md` | phases, steps, when to notify user, examples |
+
+- Examples in MD = tone guidance — do not copy into Python
+- New behavior → **edit or add MD first**; Python only when the runtime cannot reach an LLM turn
+
+## Python allowed (plumbing)
+
+- Load workflow/agent prompts (`load_workflow`, registry)
+- Phase/state transitions (`memory`, FSM)
+- Spawn agents, run pipelines, tool registry, retries
+- Stream LLM deltas (`MainTextEvent`, tool events) — content from the model
+- `user_instructions` = short pointer to a workflow step
+- Technical constants: file names, event types, limits, retry counts
+
+## Python forbidden
+
+- `build_*_message()` / `format_*_reply()` returning user-facing prose
+- `MainTextEvent` with hardcoded natural language
+- `create_message` with fixed assistant text (except persisting LLM output)
+- Copying examples from MD into Python strings
+- Tests that `assert "specific phrase" in` assistant messages
+- Duplicating prompt content in dicts like `_AGENT_BRIEFS` when it belongs in `agents/*.md`
+
+## Reverted pattern — never repeat
+
+- Function returning a canned completion message (multi-line prose)
+- Emitting and saving that message instead of an LLM turn
+- Tests locking exact wording (`"Dashboard spec"`, `"canvas"`, etc.)
+
+**Why it is wrong:**
+- Copy lives in code — agent cannot adapt language, tone, or context
+- Duplicates workflow MD content — two sources of truth
+- Tests assert prose — any prompt change breaks CI
+
+**Correct approach:** step stays in MD → orchestrator gets one more LLM turn → model writes the message
+
+## user_instructions
+
+- **Pointer only** to a step or MD file
+- Allowed: `"Pipeline finished. Follow create-dashboard.md Step 3."`
+- Not allowed: paraphrasing message content (artifact lists, how to open canvas, etc.)
+- Pointer = step ID / file path — not the message body
+
+## Orchestrator must get a turn
+
+- MD says "notify user when X completes" but code runs X automatically then `break`s → MD alone is not enough
+- Fix:
+  1. Add or update the step in workflow MD
+  2. Give the orchestrator **one more LLM iteration** (`continue` in the main loop)
+  3. Set a minimal `user_instructions` pointer
+- Do not skip the LLM turn with a canned message
+
+## Sub-agent briefs
+
+- Briefs live in agent MD or workflow MD
+- No inline instruction strings in Python dicts
+- May interpolate facts: `{task}`, file names
+- Must not interpolate instructions
+
+## Exceptions — hardcode allowed
+
+- Log messages, metric names, HTTP/status codes
+- Parser markers, file paths, agent IDs
+- System error fallback when LLM is unavailable — generic, no product copy
+- Compaction summaries from an LLM call — not hand-written templates
+
+## UI vs agent
+
+| Area | Hardcoded text |
+|------|----------------|
+| Studio (`apps/studio/**`) | OK — labels, empty states, buttons |
+| Chat assistant content | Not allowed — only from agent runtime + prompts |
+| API / frontend chat | No hardcoded assistant copy |
+
+## Code review red flags
+
+| Red flag | Description |
+|----------|-------------|
+| Message builder | `build_*_message` returning prose |
+| Multi-line user string | orchestration containing completion copy |
+| Emit without LLM | streaming canned text as model output |
+| Test asserts copy | locking exact phrases in messages |
+| Prompt duplicated | same bullets in `.md` and `.py` |
+
+## Review checklist
+
+- [ ] No new user-facing prose in Python
+- [ ] Workflow step documented in MD if behavior changed
+- [ ] Automatic pipelines still leave an orchestrator turn when acknowledgment is required
+- [ ] `user_instructions` references MD steps only, not message content
+- [ ] Examples live in MD; tests assert events/flow, not exact copy

@@ -2,7 +2,10 @@
 name: layout-designer
 displayName: Layout Designer
 description: Design responsive grid layout and widget ordering from spec.md and bindings.md.
-tools: read_file, write_file, list_file
+tools:
+  - read_file
+  - write_file
+  - list_file
 maxTurns: 20
 maxTokens: 32000
 model: null

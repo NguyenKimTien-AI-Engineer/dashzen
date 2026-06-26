@@ -1096,11 +1096,15 @@ sequenceDiagram
 
 | File | Nội dung liên quan |
 |------|--------------------|
+| **`phase-1/`** ([`phase-1/README.md`](./phase-1/README.md)) | **Plan triển khai UI Phase 1** — kết nối Backend Agent Phase 1 (steps 00–10) |
+| [`Backend/agent/phase-1/`](../Backend/agent/phase-1/) | API REST + SSE đã implement — contract cho FE |
 | `01-project-structure-and-techstack.md` | System-of-systems §3, subsystem catalog §4–14, SSE schema §12, rate limits §12.4 |
 | `03-agent-runtime-and-memory.md` | main_run, recovery, gates FSM, title generation |
 | `04-dashboard-spec-schema.md` | Schema `DashboardSpec` cho `WidgetRenderer` |
 | `05-mvp-scope.md` | Chốt scope — dùng gap audit để promote/demote |
 | `06-api-contracts.md` | OpenAPI + SSE schema full + branching + rate limit headers |
+
+> **Implement UI Phase 1:** Đọc [`phase-1/README.md`](./phase-1/README.md) → làm theo thứ tự `00` → `10`. Tài liệu này (§1–§20) là **spec đầy đủ**; `phase-1/` là **subset actionable** align Backend Phase 1 (Auto only, no gates, markdown preview).
 
 ---
 

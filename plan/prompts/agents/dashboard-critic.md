@@ -2,7 +2,10 @@
 name: dashboard-critic
 displayName: Dashboard Critic
 description: Validate dashboard artifacts — spec alignment, grounded data claims, layout completeness, code quality, and basic a11y.
-tools: read_file, write_file, list_file
+tools:
+  - read_file
+  - write_file
+  - list_file
 maxTurns: 15
 maxTokens: 32000
 model: null

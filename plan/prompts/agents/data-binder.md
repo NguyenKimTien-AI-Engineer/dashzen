@@ -2,7 +2,12 @@
 name: data-binder
 displayName: Data Binder
 description: Map every metric in spec.md to concrete data queries, mock datasets, or CSV column bindings. Validate schema alignment.
-tools: read_file, write_file, list_file, schema_inspector, csv_preview
+tools:
+  - read_file
+  - write_file
+  - list_file
+  - schema_inspector
+  - csv_preview
 maxTurns: 20
 maxTokens: 32000
 model: null

@@ -1,0 +1,67 @@
+---
+description: How to write and change agent prompt MD files
+globs: packages/agents/prompts/**/*.md
+alwaysApply: false
+---
+
+# Agent prompt conventions
+
+> Prompt MD is the single source of truth for agent behavior. Python only loads and routes.
+
+## File roles
+
+| Path | Role |
+|------|------|
+| `system/*.md` | orchestrator identity, cross-cutting rules |
+| `workflows/**/*.md` | phased playbooks: create, edit, repair, chat |
+| `agents/*.md` | single sub-agent: scope, tools, output files |
+
+- Do not put orchestrator rules in sub-agent files
+- Do not put sub-agent rules in system or workflow files
+
+## Workflow step format
+
+Every step must state:
+
+| Field | Content |
+|-------|---------|
+| **When** | phase, trigger, prerequisite files |
+| **Who** | orchestrator or sub-agent |
+| **What** | tools allowed / text-only |
+| **Done** | which artifacts must exist |
+
+- Number steps clearly
+- Imperative and testable — agent knows exactly when and what to do
+
+## Examples in MD
+
+- Use blockquotes for example tone — label clearly (e.g. "Example")
+- Examples are guidance, **not** mandatory copy
+- Do not write "the system will post automatically" unless code actually gives the orchestrator a turn
+
+## Changing behavior
+
+1. Edit MD first
+2. Agent never sees the new instruction (early loop break, wrong phase) → fix orchestration, do not hardcode in Python
+3. If Python and MD conflict → **MD wins**
+
+## Wording
+
+- Use: "must", "do not", "reply with text only"
+- Avoid vague phrasing like "be helpful" without concrete actions
+- Artifact names must match Studio: `Dashboard HTML`, `spec.md`, `bindings.md`, etc.
+- Prompt files are written in **English**; agent replies match the user's language
+
+## Language
+
+- Instructions and structure in MD → English
+- Agent output → match the user's language (stated in the workflow step)
+- Do not embed fixed Vietnamese/English copy in Python instead of this step
+
+## Review checklist
+
+- [ ] Correct file role (system / workflow / agent)
+- [ ] Every step has When / Who / What / Done
+- [ ] No implied auto-post unless orchestration supports it
+- [ ] Examples are guidance, not copied into code
+- [ ] Artifact names consistent with Studio

@@ -1,0 +1,127 @@
+---
+description: Python coding standards for the DashZen monorepo — clean, layered, no hardcode
+globs: **/*.py
+alwaysApply: false
+---
+
+# Python coding standards
+
+> Derived from the current codebase. Apply to all new and changed Python code.
+
+## Toolchain
+
+- Python **3.12+**, managed with **uv workspace**
+- **Ruff**: line length 100, rules E / F / I / UP
+- **mypy strict** — every public function must be fully typed
+- **pytest + pytest-asyncio** (`asyncio_mode = auto`)
+- Do not merge if lint or type checks fail
+
+## Monorepo layout
+
+- **src layout**: `packages/<name>/src/<name>/`
+- **apps/api** — HTTP entrypoints, deps, request/response schemas
+- **packages/core** — config, auth, exceptions, LLM clients, shared utils
+- **packages/db** — ORM models, Alembic migrations, service functions
+- **packages/agents** — orchestration, streaming, memory, prompt loading
+- **packages/tools** — individual agent tools
+- Packages **must not** import from apps
+- Cross-package imports use package names (`db`, `core`, `agents`…), not relative paths across workspace boundaries
+
+## Layering
+
+One job per layer — do not absorb concerns from another layer.
+
+| Layer | Does | Does not |
+|-------|------|----------|
+| Routes | validate HTTP, auth, call services, map schemas | SQL, business rules, agent logic |
+| Services | DB query/mutation, scope `user_id` | raise HTTPException |
+| Core | infra, domain exceptions (`code` + `message`) | feature orchestration |
+| Agents | LLM turns, tools, streaming events | HTTP |
+| Tools | one clear action, return string to loop | — |
+
+- Place code at the lowest layer that can fully own the feature
+- Extend existing patterns — no new abstraction used in only one place
+
+## Code style
+
+- `from __future__ import annotations` in new modules
+- **async def** for all I/O (DB, HTTP, LLM, filesystem)
+- **Function-first** for stateless logic
+- **Dataclass / Pydantic** for data shapes
+- **Class** only for: ORM models, Settings, runtime context, exception hierarchies
+- Private helpers: `_` prefix
+- Optional filters after required args → **keyword-only** (`*`)
+- Modern types: `str | None`, `list[str]`, `Literal` — no `Optional`, `List`
+- Import order: stdlib → third-party → local
+- Lazy import inside functions — only to break circular dependencies between packages
+- Limits, timeouts, file names, protocol markers → **constants module**
+- Avoid magic numbers and repeated string literals in business logic
+
+## Config & secrets
+
+- Env vars only via **Settings** (pydantic-settings)
+- New variables → document in `.env.example`
+- Never commit or embed: secrets, tokens, API keys, production URLs
+- Feature flags and provider selection → config, not scattered conditionals
+
+## Error handling
+
+- Domain errors → typed exceptions with stable `code` + `message`
+- HTTP layer maps exceptions to status codes via registered handlers
+- Routes raise HTTP only for transport concerns (e.g. service returns `None` → 404)
+- Re-raise known errors; wrap with `from e` preserved
+- No bare `except` or silent swallowing
+
+## Database
+
+- Models → schema; services → all queries and mutations
+- Insert: `flush` + `refresh` for generated fields
+- Update: whitelist allowed columns — no arbitrary kwargs
+- Authorization: filter `user_id` in services, not only in routes
+- Schema changes → Alembic migration in `packages/db`
+
+## Logging
+
+- Agents/runtime → **structlog**
+- Elsewhere → standard logging
+- Log: ids, duration, phase, error codes
+- Do not log: full LLM prompts, user message bodies, PII
+
+## Testing
+
+- API tests: beside `apps/api`, async HTTP client, shared auth helpers
+- Package tests: inside each package
+- Assert: behavior, HTTP status, data shape
+- Do not assert: internal call order, exact marketing copy, LLM prose
+- Use fixtures instead of copy-paste setup
+
+## Change discipline
+
+- Smallest correct diff for the requirement
+- Match naming, structure, and patterns of the file being edited
+- No unrelated refactors in the same PR
+- No helpers, base classes, or indirection used only once
+- Comments only for business rules or protocol constraints — do not narrate code
+
+## No hardcode
+
+- Business rules, tunable thresholds, provider endpoints, env paths → config or named constants
+- User-visible text in the API layer → stable messages on exception classes
+- No fixed multi-line strings for dynamic or contextual responses
+
+## No hard prompt / agent copy
+
+- Assistant behavior → **prompt MD** in `packages/agents/prompts/`
+- Python (`agents`, `tools`) = plumbing: load prompts, advance phases, spawn, stream model output, persist
+- `user_instructions` = short pointer to a workflow step — do not paraphrase message body
+- Automatic pipeline that needs user acknowledgment → add an orchestrator LLM turn
+- Details: `agent-no-hardcode.mdc`; prompt conventions: `agent-prompts.mdc`
+
+## Review checklist
+
+- [ ] Correct layer boundaries
+- [ ] No secrets, no duplicated prompt text
+- [ ] No new canned assistant messages
+- [ ] Types and async match surrounding code
+- [ ] Services enforce ownership (`user_id`)
+- [ ] Tests cover behavior, not LLM wording
