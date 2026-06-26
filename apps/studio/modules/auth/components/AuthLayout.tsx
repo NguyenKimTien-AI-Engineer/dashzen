@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card";
-import { DashZenLogo } from "../../../components/brand/dashzen-logo";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashZenLogo } from "@/components/brand/dashzen-logo";
 
 interface AuthLayoutProps {
   title: string;
@@ -13,7 +13,7 @@ export function AuthLayout({ title, description, children, footer }: AuthLayoutP
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4">
       <div className="mb-8">
-        <DashZenLogo iconSize={36} />
+        <DashZenLogo iconSize={44} />
       </div>
 
       <Card className="w-full max-w-md shadow-sm">

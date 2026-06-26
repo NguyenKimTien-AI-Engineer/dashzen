@@ -7,14 +7,14 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 
-import { Button } from "../../../components/ui/button";
-import { Alert, AlertDescription } from "../../../components/ui/alert";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../../components/ui/form";
-import { Input } from "../../../components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { OtpInput } from "./OtpInput";
 import { VerifyEmailFormData, verifyEmailSchema } from "../schemas/auth.schema";
 import { useResendVerification, useVerifyEmail } from "../hooks/useVerifyEmail";
-import { ApiError } from "../../../lib/api/errors";
+import { ApiError } from "@/lib/api/errors";
 
 export function VerifyEmailForm() {
   const router = useRouter();

@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { changePassword, deleteAccount, updateProfile } from "../../../lib/api/auth";
-import { useAuthStore } from "../../../lib/stores/authStore";
+import { changePassword, deleteAccount, deleteAvatar, updateProfile, uploadAvatar } from "@/lib/api/auth";
+import { useAuthStore } from "@/lib/stores/authStore";
 import type { User } from "../types/auth";
+
+function syncUser(queryClient: ReturnType<typeof useQueryClient>, setUser: (user: User) => void, user: User) {
+  setUser(user);
+  queryClient.setQueryData(["auth", "me"], user);
+}
 
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
@@ -12,8 +17,31 @@ export function useUpdateProfile() {
       return updateProfile(displayName);
     },
     onSuccess: (user: User) => {
-      setUser(user);
-      queryClient.setQueryData(["auth", "me"], user);
+      syncUser(queryClient, setUser, user);
+    },
+  });
+}
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore((state) => state.setUser);
+
+  return useMutation({
+    mutationFn: (file: File) => uploadAvatar(file),
+    onSuccess: (user: User) => {
+      syncUser(queryClient, setUser, user);
+    },
+  });
+}
+
+export function useDeleteAvatar() {
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore((state) => state.setUser);
+
+  return useMutation({
+    mutationFn: () => deleteAvatar(),
+    onSuccess: (user: User) => {
+      syncUser(queryClient, setUser, user);
     },
   });
 }

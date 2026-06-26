@@ -1,5 +1,5 @@
-import { AuthGuard } from "../../modules/auth/components/AuthGuard";
-import { AppShell } from "../../modules/layout/components/AppShell";
+import { AuthGuard } from "@/modules/auth/components/AuthGuard";
+import { AppShell } from "@/modules/layout/components/AppShell";
 
 export default function AppLayout({
   children,

@@ -8,13 +8,13 @@ import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Alert, AlertDescription } from "../../../components/ui/alert";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../../components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { LoginFormData, loginSchema } from "../schemas/auth.schema";
 import { useLogin } from "../hooks/useAuth";
-import { ApiError } from "../../../lib/api/errors";
+import { ApiError } from "@/lib/api/errors";
 
 function safeReturnTo(raw: string | null): string {
   if (!raw) return "/app";

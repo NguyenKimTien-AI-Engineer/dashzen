@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { resendVerification, verifyEmail } from "../../../lib/api/auth";
+import { resendVerification, verifyEmail } from "@/lib/api/auth";
 
 export function useVerifyEmail() {
   return useMutation({

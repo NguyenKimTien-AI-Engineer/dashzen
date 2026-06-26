@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { AuthLayout } from "../../../modules/auth/components/AuthLayout";
-import { RegisterForm } from "../../../modules/auth/components/RegisterForm";
+import { AuthLayout } from "@/modules/auth/components/AuthLayout";
+import { RegisterForm } from "@/modules/auth/components/RegisterForm";
 
 export const metadata: Metadata = {
   title: "Sign up — DashZen",

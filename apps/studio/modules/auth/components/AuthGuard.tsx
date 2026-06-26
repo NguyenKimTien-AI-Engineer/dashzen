@@ -1,18 +1,41 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
-import { refreshSession } from "../../../lib/api/client";
+import { clearSessionAndLogin, refreshSession } from "@/lib/api/client";
 import { useMe } from "../hooks/useMe";
 import { useSessionKeepAlive } from "../hooks/useSessionKeepAlive";
-import { Skeleton } from "../../../components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function SessionExpiredScreen({ returnTo }: { returnTo: string }) {
+  return (
+    <div className="flex h-screen w-screen items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-4 rounded-xl border border-border bg-card p-6 text-center shadow-sm">
+        <h1 className="text-lg font-semibold text-foreground">Session expired</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Your sign-in session is no longer valid. Your account is still saved — sign in
+          again with the same email and password.
+        </p>
+        <Button
+          className="w-full"
+          onClick={() => {
+            void clearSessionAndLogin(returnTo);
+          }}
+        >
+          Sign in again
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { data, isLoading, refetch } = useMe();
   const [recovering, setRecovering] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const recoveryStarted = useRef(false);
 
   useSessionKeepAlive();
@@ -22,6 +45,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
     if (data) {
       recoveryStarted.current = false;
+      setSessionExpired(false);
       return;
     }
 
@@ -44,7 +68,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         setRecovering(false);
       }
 
-      router.replace(`/login?return_to=${encodeURIComponent(pathname)}`);
+      setSessionExpired(true);
     }
 
     void recoverSession();
@@ -52,7 +76,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [isLoading, data, pathname, router, refetch]);
+  }, [isLoading, data, refetch]);
 
   if (isLoading || recovering) {
     return (
@@ -64,6 +88,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
+  }
+
+  if (sessionExpired) {
+    return <SessionExpiredScreen returnTo={pathname} />;
   }
 
   if (!data) return null;

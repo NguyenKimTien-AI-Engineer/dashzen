@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { AuthLayout } from "../../../modules/auth/components/AuthLayout";
-import { LoginForm } from "../../../modules/auth/components/LoginForm";
-import { Skeleton } from "../../../components/ui/skeleton";
+import { AuthLayout } from "@/modules/auth/components/AuthLayout";
+import { LoginForm } from "@/modules/auth/components/LoginForm";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
   title: "Sign in — DashZen",

@@ -4,6 +4,7 @@ import { DashZenIcon } from "./dashzen-icon";
 
 type DashZenLogoProps = {
   showStudio?: boolean;
+  showIcon?: boolean;
   iconSize?: number;
   href?: string | null;
   className?: string;
@@ -11,13 +12,14 @@ type DashZenLogoProps = {
 
 export function DashZenLogo({
   showStudio = false,
-  iconSize = 32,
+  showIcon = true,
+  iconSize = 36,
   href = null,
   className,
 }: DashZenLogoProps) {
   const content = (
     <>
-      <DashZenIcon size={iconSize} />
+      {showIcon && <DashZenIcon size={iconSize} />}
       <div className="flex items-baseline gap-1 leading-none">
         <span className="text-xl font-semibold tracking-tight">DashZen</span>
         {showStudio && (

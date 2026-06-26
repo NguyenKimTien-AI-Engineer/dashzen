@@ -7,13 +7,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Alert, AlertDescription } from "../../../components/ui/alert";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../../components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RegisterFormData, registerSchema } from "../schemas/auth.schema";
 import { useRegister } from "../hooks/useAuth";
-import { ApiError, mapFieldErrors } from "../../../lib/api/errors";
+import { ApiError, mapFieldErrors } from "@/lib/api/errors";
 
 export function RegisterForm() {
   const router = useRouter();

@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { AuthLayout } from "../../../modules/auth/components/AuthLayout";
-import { VerifyEmailForm } from "../../../modules/auth/components/VerifyEmailForm";
-import { Skeleton } from "../../../components/ui/skeleton";
+import { AuthLayout } from "@/modules/auth/components/AuthLayout";
+import { VerifyEmailForm } from "@/modules/auth/components/VerifyEmailForm";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
   title: "Verify email — DashZen",

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { login, logoutApi, register } from "../../../lib/api/auth";
-import { useAuthStore } from "../../../lib/stores/authStore";
+import { login, logoutApi, register } from "@/lib/api/auth";
+import { useAuthStore } from "@/lib/stores/authStore";
 
 export function useLogin() {
   const queryClient = useQueryClient();
@@ -19,8 +19,16 @@ export function useLogin() {
 
 export function useRegister() {
   return useMutation({
-    mutationFn: async ({ email, password, displayName }: { email: string; password: string; displayName?: string }) => {
-      return register(email, password, displayName);
+    mutationFn: async ({
+      email,
+      password,
+      display_name,
+    }: {
+      email: string;
+      password: string;
+      display_name?: string;
+    }) => {
+      return register(email, password, display_name);
     },
   });
 }
