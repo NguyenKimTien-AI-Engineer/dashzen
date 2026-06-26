@@ -23,7 +23,7 @@ export function AppSidebar() {
     <TooltipProvider>
       <aside
         className={cn(
-          "hidden h-full shrink-0 flex-col border-r bg-muted/20 transition-[width] duration-200 ease-in-out sm:flex",
+          "hidden h-full shrink-0 flex-col bg-background transition-[width] duration-200 ease-in-out sm:flex",
           isCollapsed ? "w-16" : "w-[calc(16rem+1cm)]",
         )}
         aria-label="Sidebar"
