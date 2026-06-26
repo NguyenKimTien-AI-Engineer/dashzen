@@ -13,7 +13,7 @@ Production deploy uses **platform Git integration**, not this workflow alone.
 ## Quick checklist
 
 1. **Neon** — create project → connection string with `postgresql+asyncpg://` and `?sslmode=require`
-2. **Render** — New Blueprint → select repo → set env from `.env.production.example`
+2. **Render** — New Blueprint → select repo → set env from `.env.example` ([PROD] section)
 3. **Vercel** — Import repo → Root Directory: `apps/studio` → `NEXT_PUBLIC_API_URL`
 4. **Merge to `main`** — Vercel + Render auto-deploy; CD workflow runs smoke if variables set
 
@@ -33,10 +33,13 @@ docker run --rm -p 8000:8000 \
   dashzen-api
 ```
 
-Required Render env vars (see `.env.production.example`):
+Required Render env vars (see `.env.example` → `[PROD] Render`):
 
 - `DATABASE_URL`, `JWT_SECRET_KEY`, `API_CORS_ORIGINS`, `API_PUBLIC_URL`, `GEMINI_API_KEY`
 - `COOKIE_SECURE=true`, `COOKIE_SAMESITE=none` for cross-domain auth
+- `API_CORS_ORIGINS` must exactly match your Vercel URL (e.g. `https://dashzen-lead.vercel.app`)
+
+Auth cookies are stored on the **API domain** (Render), not Vercel. Studio uses `AuthGuard` + `/v1/auth/me`; do not rely on Next.js middleware cookie checks (removed for split deploy).
 
 Migrations run automatically on container start (`scripts/start-api.sh`).
 
