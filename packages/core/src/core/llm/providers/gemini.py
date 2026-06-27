@@ -164,7 +164,11 @@ class GeminiProvider:
         )
         prompt_tokens: int | None = None
         output_tokens: int | None = None
-        emitted_tool_calls: set[str] = set()
+        # Buffer tool calls so we can deduplicate after the full stream.
+        # Gemini sometimes repeats the same functionCall across chunks; buffering
+        # ensures each unique (name, args) is emitted exactly once while still
+        # allowing the same function to be called with different args.
+        buffered_tool_calls: list[tuple[str, str]] = []  # (fn_name, args_json)
 
         async with httpx.AsyncClient(timeout=600) as client:
             async with client.stream(
@@ -197,18 +201,23 @@ class GeminiProvider:
                                 yield LLMDelta(kind="text_delta", text=part["text"])
                             if "functionCall" in part:
                                 fn = part["functionCall"]
-                                fn_name = fn.get("name", "")
-                                args = fn.get("args", {})
-                                dedupe_key = f"{fn_name}:{json.dumps(args, sort_keys=True)}"
-                                if dedupe_key in emitted_tool_calls:
-                                    continue
-                                emitted_tool_calls.add(dedupe_key)
-                                yield LLMDelta(
-                                    kind="tool_call",
-                                    tool_call_id=str(uuid.uuid4()),
-                                    tool_name=fn_name,
-                                    tool_args_json=json.dumps(args),
+                                buffered_tool_calls.append(
+                                    (fn.get("name", ""), json.dumps(fn.get("args", {})))
                                 )
+
+        # Emit deduplicated tool calls after stream ends
+        emitted: set[str] = set()
+        for fn_name, args_json in buffered_tool_calls:
+            key = f"{fn_name}:{args_json}"
+            if key in emitted:
+                continue
+            emitted.add(key)
+            yield LLMDelta(
+                kind="tool_call",
+                tool_call_id=str(uuid.uuid4()),
+                tool_name=fn_name,
+                tool_args_json=args_json,
+            )
 
         yield LLMDelta(
             kind="done",
