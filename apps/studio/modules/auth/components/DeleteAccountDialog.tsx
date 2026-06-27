@@ -56,7 +56,7 @@ export function DeleteAccountDialog({
   const password = form.watch("password");
   const canSubmit =
     confirmation === "DELETE" &&
-    (!requiresPassword || password.length > 0) &&
+    (!requiresPassword || (password?.length ?? 0) > 0) &&
     !deleteAccountMutation.isPending;
 
   function handleOpenChange(next: boolean) {
