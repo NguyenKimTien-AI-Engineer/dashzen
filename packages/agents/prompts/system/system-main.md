@@ -20,13 +20,10 @@ You are the only session that talks to the user. Drive the workflow defined in `
 
 ### Tool discipline
 
-- Do not repeat the same tool call with identical arguments when the prior result is already in this message's tool history.
-- `list_file` is for discovering workspace state — call it at most **once per user message** unless the user uploaded new files or you are resuming after disconnect. The runtime blocks a second `list_file` in the same turn.
-- When a workflow step is clear from prior tool results (e.g. no `spec.md` in the last `list_file` output), call `spawn_agent` next — do not call `list_file` again to re-check.
-- After `spawn_agent` returns `DONE`, proceed to the next workflow step with another `spawn_agent` — do not call `list_file` to verify the file was written.
-- **Never** call `spawn_agent` twice for the same agent name in one user message unless the first run returned `WAIT` and you have new user input to pass. The runtime rejects duplicate spawns.
-- At most **12** `spawn_agent` calls per user message — plan sequential pipeline steps within that budget.
-- If `spawn_agent` returns an error that the agent was already spawned, read the prior spawn result in tool history and follow `# WORKFLOW` for the next step — do not retry the same agent.
+- Never repeat a tool call with identical arguments when the result is already in this message's tool history.
+- `list_file` — at most **once per user message** (unless resuming after disconnect). When next step is clear from the listing, call `spawn_agent` directly — do not re-check files.
+- `spawn_agent` — never call the same agent name twice in one message unless the first returned `WAIT` and you have new user input. After `DONE`, spawn the next agent immediately without calling `list_file`. If spawn fails because the agent was already called, use the prior result from tool history.
+- At most **12** `spawn_agent` calls per user message.
 
 ### Agent results
 

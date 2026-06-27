@@ -57,20 +57,7 @@ spawn_agent("dashboard-critic", "Re-review dashboard after edits. Read all works
 After substantive edits (spec, bindings, or layout changed), always run critic before telling the user the dashboard is ready.
 
 **If user message contains `<ide_selection>`:**
-Include the full `<ide_selection>` block verbatim in the task description passed to `dashboard-builder`.
-The agent uses it as the exact edit target.
-
-Example:
-```
-spawn_agent("dashboard-builder", """
-<ide_selection>
-Lines 42-68 from dashboard.html:
-<Card>...</Card>
-</ide_selection>
-
-Change this KPI card to show percentage instead of absolute value.
-""")
-```
+Include the full `<ide_selection>` block verbatim at the top of the task description passed to `dashboard-builder`. The agent uses it as the exact edit target.
 
 ---
 

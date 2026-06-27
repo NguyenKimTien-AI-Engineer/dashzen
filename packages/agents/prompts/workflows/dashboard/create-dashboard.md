@@ -18,16 +18,9 @@ If a critical fact is genuinely missing, use `ask_user` once, then stop — resu
 
 Spawn agents in order. Each stage's **precondition is the previous stage's output file**.
 
-### When to call `list_file`
+Call `list_file` **once** at the start of the user message (or after reconnect) to see which pipeline files exist. After that — do not call it again. When `spawn_agent` returns `DONE`, spawn the next agent immediately.
 
-- **Once per user message** — at the very start of handling that message, **or** when resuming after a disconnect. Use it to see which pipeline files exist.
-- **Never** call `list_file` again in later tool-only iterations of the same user message if you already have a listing in this message's tool history.
-- **Never** call `list_file` twice in a row with the same result.
-- After `spawn_agent` returns `DONE`, you already know the output file was written — **spawn the next agent immediately**. Do not `list_file` to verify.
-
-Prefer calling `list_file` and `spawn_agent` in the **same tool batch** when starting the pipeline.
-
-Pass only the user's brief in each spawn call — do not pass the conversation or your reasoning.
+Prefer batching `list_file` and the first `spawn_agent` together. Pass only the user's brief in each spawn — not your reasoning.
 
 ### Pipeline stages
 
@@ -53,7 +46,7 @@ spawn_agent("layout-designer", "<user brief>")
 ```
 spawn_agent("dashboard-builder", "<user brief>")
 ```
-→ writes `dashboard.html` (must use `bindings.defaultFilters`, ECharts `getInstanceByDom` only, reveal-safe — see `dashboard-builder.md`)
+→ writes `dashboard.html`
 
 ### Handling agent status
 
@@ -66,10 +59,6 @@ spawn_agent("dashboard-builder", "<user brief>")
 If `layout-designer` returned `DONE` and `dashboard-builder` returns `WAIT` claiming missing workspace files, **do not** restart the pipeline or re-spawn earlier agents. Re-spawn **only** `dashboard-builder` once — follow `dashboard-builder.md` Process step 1.
 
 Do not re-spawn the same agent with identical input more than once. If the same step returns `FAIL` or `WAIT` twice with the same reason, stop and ask the user how to proceed.
-
-If `spawn_agent` fails because that agent was already spawned this turn, use the prior result in tool history and follow `# WORKFLOW` for the next step — do not call `list_file` or retry the same agent.
-
-**Runtime limits (enforced by tools, not optional):** one `list_file` per user message; one spawn per agent name per message; at most 12 spawns per message.
 
 ---
 
