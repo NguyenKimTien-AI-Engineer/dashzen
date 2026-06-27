@@ -10,6 +10,7 @@ from db.models.task import Task
 
 def _published_artifact_names() -> frozenset[str]:
     from core.config import get_settings
+
     names = get_settings().published_artifact_names
     return frozenset(n.strip() for n in names.split(",") if n.strip())
 
@@ -249,9 +250,7 @@ async def cleanup_old_file_versions(
 
     Returns the number of deleted rows.
     """
-    all_files_result = await db.execute(
-        select(File.name).where(File.task_id == task_id).distinct()
-    )
+    all_files_result = await db.execute(select(File.name).where(File.task_id == task_id).distinct())
     file_names = [row[0] for row in all_files_result]
     total_deleted = 0
 

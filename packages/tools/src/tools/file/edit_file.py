@@ -34,8 +34,7 @@ DEFINITION = ToolDefinition(
             "new_string": {
                 "type": "string",
                 "description": (
-                    "Text to replace old_string with. "
-                    "Use an empty string to delete old_string."
+                    "Text to replace old_string with. Use an empty string to delete old_string."
                 ),
             },
         },

@@ -48,12 +48,15 @@ class AuthService:
         if existing is not None:
             raise EmailExistsError()
         try:
-            return await create_user(
+            user = await create_user(
                 self.session,
                 email=email,
                 password_hash=hash_password(password),
                 display_name=display_name,
             )
+            # Commit before returning so concurrent duplicate inserts surface as IntegrityError.
+            await self.session.commit()
+            return user
         except IntegrityError:
             await self.session.rollback()
             raise EmailExistsError() from None

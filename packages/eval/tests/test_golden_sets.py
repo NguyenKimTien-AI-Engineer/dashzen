@@ -30,10 +30,10 @@ def test_valid_dashboard_html() -> None:
 
 def test_invalid_dashboard_html_missing_marker() -> None:
     content = (
-        '<!DOCTYPE html><html><head>'
+        "<!DOCTYPE html><html><head>"
         '<script src="https://cdn.tailwindcss.com"></script>'
         '<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>'
-        '</head><body><h1>Hi</h1></body></html>'
+        "</head><body><h1>Hi</h1></body></html>"
     )
     with pytest.raises(ValueError, match="builder"):
         validate_dashboard_html(content)

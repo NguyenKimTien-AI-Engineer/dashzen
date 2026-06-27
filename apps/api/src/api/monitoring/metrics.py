@@ -4,6 +4,7 @@ All counters and gauges are thread-safe via threading.Lock and survive across
 requests within the same worker process. For multi-worker deployments, expose
 per-worker metrics and aggregate at the scraper layer.
 """
+
 from __future__ import annotations
 
 import threading
@@ -98,6 +99,7 @@ registry = _MetricsRegistry()
 # ------------------------------------------------------------------
 # Named metric helpers (avoid typos in callers)
 # ------------------------------------------------------------------
+
 
 def record_agent_run(*, status: str, iterations: int, token_total: int) -> None:
     registry.inc("agent_run_total", status=status)

@@ -1,4 +1,5 @@
 """Background cleanup task — runs periodically to prune old file versions."""
+
 from __future__ import annotations
 
 import asyncio

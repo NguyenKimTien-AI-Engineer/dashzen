@@ -50,6 +50,7 @@ log = structlog.get_logger()
 def _emit_run_metrics(*, status: str, iterations: int, token_total: int) -> None:
     try:
         from api.monitoring.metrics import record_agent_run
+
         record_agent_run(status=status, iterations=iterations, token_total=token_total)
     except Exception:
         pass  # metrics are non-critical; never fail the main loop
@@ -58,6 +59,7 @@ def _emit_run_metrics(*, status: str, iterations: int, token_total: int) -> None
 def _record_tool_metrics(tool_calls_raw: list[dict]) -> None:  # type: ignore[type-arg]
     try:
         from api.monitoring.metrics import record_tool_call
+
         for tc in tool_calls_raw:
             record_tool_call(tc.get("name", "unknown"))
     except Exception:
