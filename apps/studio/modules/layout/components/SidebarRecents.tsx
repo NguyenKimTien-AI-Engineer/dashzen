@@ -40,7 +40,7 @@ function TaskLink({ id, title, isActive }: TaskLinkProps) {
 }
 
 export function SidebarRecents({ collapsed }: SidebarRecentsProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const { data: tasks, isLoading, isError, refetch } = useTasks();
 
   if (collapsed) return null;

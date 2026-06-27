@@ -13,12 +13,12 @@ export function useChatsPageFilters() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const query = searchParams.get("q") ?? "";
-  const filter = parseFilter(searchParams.get("filter"));
+  const query = searchParams?.get("q") ?? "";
+  const filter = parseFilter(searchParams?.get("filter") ?? null);
 
   const replaceParams = useCallback(
     (updates: { q?: string; filter?: ChatFilterKey }) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
 
       if (updates.q !== undefined) {
         if (updates.q.trim()) params.set("q", updates.q);
@@ -31,7 +31,7 @@ export function useChatsPageFilters() {
       }
 
       const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      router.replace(qs ? `${pathname ?? "/app/chats"}?${qs}` : (pathname ?? "/app/chats"), { scroll: false });
     },
     [pathname, router, searchParams],
   );

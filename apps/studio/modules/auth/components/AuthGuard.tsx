@@ -91,7 +91,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (sessionExpired) {
-    return <SessionExpiredScreen returnTo={pathname} />;
+    return <SessionExpiredScreen returnTo={pathname ?? "/app"} />;
   }
 
   if (!data) return null;

@@ -24,7 +24,7 @@ export function SidebarNavItem({
   active,
   onClick,
 }: SidebarNavItemProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const isActive = active ?? pathname === href;
 
   const className = cn(

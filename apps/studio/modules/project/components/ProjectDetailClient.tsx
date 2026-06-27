@@ -19,7 +19,7 @@ const LIST_COLUMN_CLASS = "mx-auto w-full max-w-4xl px-6";
 
 export function ProjectDetailClient() {
   const params = useParams<{ projectId: string }>();
-  const projectId = params.projectId;
+  const projectId = params?.projectId ?? "";
   const [query, setQuery] = useState("");
 
   const { data: project, isLoading: projectLoading } = useQuery({

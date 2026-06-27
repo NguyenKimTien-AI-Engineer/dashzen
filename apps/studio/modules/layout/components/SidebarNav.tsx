@@ -23,7 +23,7 @@ type SidebarNavProps = {
 };
 
 export function SidebarNav({ collapsed }: SidebarNavProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const isHome = pathname === "/app";
 
   return (

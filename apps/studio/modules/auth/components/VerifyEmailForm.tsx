@@ -25,7 +25,7 @@ export function VerifyEmailForm() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
 
-  const emailParam = searchParams.get("email");
+  const emailParam = searchParams?.get("email");
 
   const form = useForm<VerifyEmailFormData>({
     resolver: zodResolver(verifyEmailSchema),

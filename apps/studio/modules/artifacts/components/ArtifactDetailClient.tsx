@@ -26,7 +26,7 @@ const COLUMN_CLASS = "mx-auto w-full max-w-4xl px-6";
 
 export function ArtifactDetailClient() {
   const params = useParams<{ artifactId: string }>();
-  const artifactId = params.artifactId;
+  const artifactId = params?.artifactId ?? "";
   const { data: artifact, isLoading, isError } = useArtifact(artifactId);
 
   if (isLoading) {

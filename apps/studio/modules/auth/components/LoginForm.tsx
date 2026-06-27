@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
@@ -24,15 +24,14 @@ function safeReturnTo(raw: string | null): string {
 }
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const loginMutation = useLogin();
 
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [needsVerificationEmail, setNeedsVerificationEmail] = useState<string | null>(null);
 
-  const verified = searchParams.get("verified") === "1";
-  const verifiedEmail = searchParams.get("email");
+  const verified = searchParams?.get("verified") === "1";
+  const verifiedEmail = searchParams?.get("email");
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -48,8 +47,8 @@ export function LoginForm() {
 
     try {
       await loginMutation.mutateAsync(data);
-      const returnTo = safeReturnTo(searchParams.get("return_to"));
-      router.push(returnTo);
+      const returnTo = safeReturnTo(searchParams?.get("return_to") ?? null);
+      window.location.assign(returnTo);
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.code === "invalid_credentials") {

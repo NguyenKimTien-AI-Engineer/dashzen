@@ -7,7 +7,7 @@ import { isChatLayoutPath } from "@/modules/layout/lib/routes";
 import { SettingsPanel } from "@/modules/settings/components/SettingsPanel";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const isChatLayout = isChatLayoutPath(pathname);
 
   return (
