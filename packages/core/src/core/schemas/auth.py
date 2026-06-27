@@ -43,12 +43,17 @@ class ResendVerificationRequest(BaseModel):
     email: EmailStr
 
 
+AuthProvider = Literal["password", "google"]
+
+
 class UserResponse(BaseModel):
     id: UUID
     email: EmailStr
     display_name: str | None = None
     avatar_url: str | None = None
     email_verified: bool = False
+    has_password: bool = False
+    auth_providers: list[AuthProvider] = Field(default_factory=list)
     created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
@@ -107,7 +112,7 @@ class ChangePasswordRequest(BaseModel):
 
 
 class DeleteAccountRequest(BaseModel):
-    password: str = Field(min_length=1, max_length=128)
+    password: str | None = Field(default=None, max_length=128)
     confirmation: Literal["DELETE"]
 
 

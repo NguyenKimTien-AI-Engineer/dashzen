@@ -57,6 +57,20 @@ class Settings(BaseSettings):
     auth_refresh_rate_limit: str = "3/minute"
     auth_verify_rate_limit: str = "5/minute"
     auth_resend_rate_limit: str = "3/hour"
+    auth_google_rate_limit: str = "10/minute"
+    auth_google_callback_rate_limit: str = "20/minute"
+
+    google_oauth_enabled: bool = False
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/v1/auth/google/callback"
+    google_hd: str | None = None
+    oauth_state_ttl_seconds: int = 600
+
+    studio_public_url: str = Field(
+        default="http://localhost:3000",
+        description="Public Studio base URL for OAuth redirects after login",
+    )
 
     email_backend: EmailBackendType = "console"
     email_from: str = "noreply@dashzen.local"

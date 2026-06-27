@@ -30,6 +30,10 @@
 | [05-checklist.md](./05-checklist.md) | Deliverables, test cases, definition of done |
 | [06-email-verification.md](./06-email-verification.md) | **Đề xuất** Email OTP verification sau register |
 | [07-implementation-status.md](./07-implementation-status.md) | **As-built** — những gì đã code & hardening |
+| [08-google-oauth.md](./08-google-oauth.md) | **Planned** Google OAuth login — backend |
+| [09-google-oauth-checklist.md](./09-google-oauth-checklist.md) | Checklist triển khai Google OAuth |
+
+**Master plan OAuth:** [`../../google-oauth-login.md`](../../google-oauth-login.md)
 
 ---
 
@@ -37,7 +41,7 @@
 
 | In scope | Out of scope (Phase 2+) |
 |----------|-------------------------|
-| Login / Register / Logout | OAuth (Google, GitHub) |
+| Login / Register / Logout | OAuth (Google, GitHub) → **Google planned** [08-google-oauth.md](./08-google-oauth.md) |
 | JWT access + refresh (server-side revocation) | better-auth migration |
 | **httpOnly cookie** (khuyến nghị) | Multi-tenant admin |
 | Bearer header (fallback) | Invite gate |

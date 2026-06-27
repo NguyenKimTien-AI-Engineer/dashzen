@@ -59,3 +59,37 @@ class TooManyVerificationAttemptsError(AuthError):
 class AlreadyVerifiedError(AuthError):
     def __init__(self) -> None:
         super().__init__("already_verified", "This email address is already verified.")
+
+
+class OAuthProviderDisabledError(AuthError):
+    def __init__(self) -> None:
+        super().__init__("oauth_provider_disabled", "Google sign-in is not configured.")
+
+
+class OAuthStateInvalidError(AuthError):
+    def __init__(self) -> None:
+        super().__init__("oauth_state_invalid", "Sign-in session expired. Please try again.")
+
+
+class OAuthExchangeFailedError(AuthError):
+    def __init__(self) -> None:
+        super().__init__(
+            "oauth_exchange_failed",
+            "Could not complete Google sign-in. Please try again later.",
+        )
+
+
+class GoogleEmailUnverifiedError(AuthError):
+    def __init__(self) -> None:
+        super().__init__(
+            "google_email_unverified",
+            "Your Google email address is not verified.",
+        )
+
+
+class NoPasswordAuthError(AuthError):
+    def __init__(self) -> None:
+        super().__init__(
+            "no_password_auth",
+            "This account uses Google sign-in and has no password set.",
+        )

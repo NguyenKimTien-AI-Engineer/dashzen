@@ -67,11 +67,17 @@ export function AccountSettingsPanel() {
         <div className="flex items-center justify-between gap-4 border-t pt-6">
           <div>
             <p className="text-sm font-medium">Password</p>
-            <p className="text-sm text-muted-foreground">Update your password to keep your account secure.</p>
+            <p className="text-sm text-muted-foreground">
+              {user.has_password
+                ? "Update your password to keep your account secure."
+                : "You signed in with Google. Password login is not enabled for this account."}
+            </p>
           </div>
-          <Button variant="outline" onClick={() => setChangePasswordOpen(true)}>
-            Change password
-          </Button>
+          {user.has_password ? (
+            <Button variant="outline" onClick={() => setChangePasswordOpen(true)}>
+              Change password
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex items-center justify-between gap-4 border-t pt-6">
@@ -100,7 +106,11 @@ export function AccountSettingsPanel() {
       </div>
 
       <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />
-      <DeleteAccountDialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen} />
+      <DeleteAccountDialog
+        open={deleteAccountOpen}
+        onOpenChange={setDeleteAccountOpen}
+        requiresPassword={user.has_password}
+      />
     </div>
   );
 }

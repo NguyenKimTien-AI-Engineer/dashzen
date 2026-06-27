@@ -33,12 +33,16 @@ export const changePasswordSchema = z
 
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
-export const deleteAccountSchema = z.object({
-  confirmation: z
-    .string()
-    .refine((value) => value === "DELETE", { message: "Type DELETE to confirm" }),
-  password: z.string().min(1, "Password is required"),
-});
+export function deleteAccountSchema(requiresPassword: boolean) {
+  return z.object({
+    confirmation: z
+      .string()
+      .refine((value) => value === "DELETE", { message: "Type DELETE to confirm" }),
+    password: requiresPassword
+      ? z.string().min(1, "Password is required")
+      : z.string().optional(),
+  });
+}
 
-export type DeleteAccountFormData = z.infer<typeof deleteAccountSchema>;
-export type DeleteAccountFormInput = z.input<typeof deleteAccountSchema>;
+export type DeleteAccountFormData = z.infer<ReturnType<typeof deleteAccountSchema>>;
+export type DeleteAccountFormInput = z.input<ReturnType<typeof deleteAccountSchema>>;

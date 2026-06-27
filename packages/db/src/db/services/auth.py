@@ -63,7 +63,9 @@ class AuthService:
 
     async def login(self, email: str, password: str) -> User:
         user = await get_user_by_email(self.session, email)
-        if user is None or not verify_password(password, user.password_hash):
+        if user is None or user.password_hash is None:
+            raise InvalidCredentialsError()
+        if not verify_password(password, user.password_hash):
             raise InvalidCredentialsError()
         if not user.is_active:
             raise InvalidCredentialsError()
@@ -116,13 +118,18 @@ class AuthService:
         return await update_user_display_name(self.session, user.id, display_name)
 
     async def change_password(self, user: User, current_password: str, new_password: str) -> None:
+        from core.exceptions import NoPasswordAuthError
+
+        if user.password_hash is None:
+            raise NoPasswordAuthError()
         if not verify_password(current_password, user.password_hash):
             raise InvalidCredentialsError()
         await update_user_password_hash(self.session, user.id, hash_password(new_password))
 
-    async def delete_account(self, user: User, password: str) -> None:
-        if not verify_password(password, user.password_hash):
-            raise InvalidCredentialsError()
+    async def delete_account(self, user: User, password: str | None = None) -> None:
+        if user.password_hash is not None:
+            if password is None or not verify_password(password, user.password_hash):
+                raise InvalidCredentialsError()
         await AvatarService(self.session).remove(user)
         await revoke_all_user_refresh_tokens(self.session, user.id)
         await delete_user(self.session, user.id)

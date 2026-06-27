@@ -69,10 +69,10 @@ export function useDeleteAccount() {
       password,
       confirmation,
     }: {
-      password: string;
+      password?: string;
       confirmation: "DELETE";
     }) => {
-      return deleteAccount(password, confirmation);
+      return deleteAccount(confirmation, password);
     },
     onSuccess: () => {
       clear();

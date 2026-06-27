@@ -33,14 +33,19 @@ import {
 type DeleteAccountDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  requiresPassword: boolean;
 };
 
-export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogProps) {
+export function DeleteAccountDialog({
+  open,
+  onOpenChange,
+  requiresPassword,
+}: DeleteAccountDialogProps) {
   const router = useRouter();
   const deleteAccountMutation = useDeleteAccount();
 
   const form = useForm<DeleteAccountFormInput>({
-    resolver: zodResolver(deleteAccountSchema),
+    resolver: zodResolver(deleteAccountSchema(requiresPassword)),
     defaultValues: {
       confirmation: "",
       password: "",
@@ -50,7 +55,9 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
   const confirmation = form.watch("confirmation");
   const password = form.watch("password");
   const canSubmit =
-    confirmation === "DELETE" && password.length > 0 && !deleteAccountMutation.isPending;
+    confirmation === "DELETE" &&
+    (!requiresPassword || password.length > 0) &&
+    !deleteAccountMutation.isPending;
 
   function handleOpenChange(next: boolean) {
     if (!next) {
@@ -62,7 +69,7 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
   async function onSubmit(data: DeleteAccountFormInput) {
     try {
       await deleteAccountMutation.mutateAsync({
-        password: data.password,
+        password: requiresPassword ? data.password : undefined,
         confirmation: "DELETE",
       });
       toast.success("Your account has been deleted");
@@ -122,7 +129,7 @@ export function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogP
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className={requiresPassword ? undefined : "hidden"}>
                   <FormLabel>Enter your password</FormLabel>
                   <FormControl>
                     <Input type="password" autoComplete="current-password" {...field} />

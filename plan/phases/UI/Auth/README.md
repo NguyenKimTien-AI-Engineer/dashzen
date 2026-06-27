@@ -36,6 +36,9 @@
 | [08-checklist.md](./08-checklist.md) | Deliverables, test cases, definition of done |
 | [09-implementation-status.md](./09-implementation-status.md) | Tracking implement (cập nhật khi code) |
 | [10-account-management.md](./10-account-management.md) | Phase 2 — Profile CRUD, change password, delete account |
+| [11-google-oauth.md](./11-google-oauth.md) | **Planned** Google OAuth — Studio UI |
+
+**Master plan OAuth:** [`../../google-oauth-login.md`](../../google-oauth-login.md)
 
 ---
 
@@ -43,7 +46,7 @@
 
 | In scope | Out of scope (Phase 2+) |
 |----------|-------------------------|
-| Login / Register / Logout UI | OAuth (Google, GitHub) |
+| Login / Register / Logout UI | OAuth (Google) → **Planned** [11-google-oauth.md](./11-google-oauth.md) |
 | Email verification (OTP 6 số) | Password reset / forgot password |
 | httpOnly cookie session (không localStorage) | better-auth migration |
 | Route guard `/app/*` + guest-only auth routes | Multi-tenant admin UI |

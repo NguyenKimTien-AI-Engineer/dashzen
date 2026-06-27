@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -15,6 +15,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { LoginFormData, loginSchema } from "../schemas/auth.schema";
 import { useLogin } from "../hooks/useAuth";
 import { ApiError } from "@/lib/api/errors";
+import { GoogleSignInButton } from "./GoogleSignInButton";
+
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  oauth_state_invalid: "Sign-in expired. Please try again.",
+  oauth_exchange_failed: "Could not complete Google sign-in. Try again later.",
+  google_email_unverified: "Your Google email is not verified.",
+  account_exists_password:
+    "An account with this email already exists. Sign in with your password first.",
+};
 
 function safeReturnTo(raw: string | null): string {
   if (!raw) return "/app";
@@ -25,6 +34,7 @@ function safeReturnTo(raw: string | null): string {
 
 export function LoginForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const loginMutation = useLogin();
 
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -32,6 +42,15 @@ export function LoginForm() {
 
   const verified = searchParams?.get("verified") === "1";
   const verifiedEmail = searchParams?.get("email");
+  const returnTo = safeReturnTo(searchParams?.get("return_to") ?? null);
+
+  useEffect(() => {
+    const oauthError = searchParams?.get("error");
+    if (!oauthError) return;
+    const message = OAUTH_ERROR_MESSAGES[oauthError] ?? "Google sign-in failed. Please try again.";
+    toast.error(message);
+    router.replace("/login");
+  }, [router, searchParams]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -47,7 +66,6 @@ export function LoginForm() {
 
     try {
       await loginMutation.mutateAsync(data);
-      const returnTo = safeReturnTo(searchParams?.get("return_to") ?? null);
       window.location.assign(returnTo);
     } catch (error) {
       if (error instanceof ApiError) {
@@ -94,6 +112,17 @@ export function LoginForm() {
           </AlertDescription>
         </Alert>
       )}
+
+      <GoogleSignInButton returnTo={returnTo} disabled={loginMutation.isPending} />
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">or continue with email</span>
+        </div>
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

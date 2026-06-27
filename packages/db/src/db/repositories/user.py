@@ -18,7 +18,7 @@ async def get_user_by_id(session: AsyncSession, user_id: UUID) -> User | None:
 async def create_user(
     session: AsyncSession,
     email: str,
-    password_hash: str,
+    password_hash: str | None = None,
     display_name: str | None = None,
 ) -> User:
     user = User(email=email.lower(), password_hash=password_hash, display_name=display_name)

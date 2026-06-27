@@ -54,6 +54,8 @@ async def db_engine():
     engine = create_async_engine(settings.database_url)
 
     async with engine.begin() as conn:
+        import db.models  # noqa: F401 — register all tables for metadata.create_all
+
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 

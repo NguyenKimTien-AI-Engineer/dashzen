@@ -4,6 +4,8 @@ from core.exceptions import (
     EmailExistsError,
     EmailNotVerifiedError,
     InvalidVerificationCodeError,
+    NoPasswordAuthError,
+    OAuthProviderDisabledError,
     TooManyVerificationAttemptsError,
     UserInactiveError,
 )
@@ -22,6 +24,8 @@ def register_exception_handlers(app: FastAPI) -> None:
         elif isinstance(exc, (UserInactiveError, EmailNotVerifiedError)):
             status_code = 403
         elif isinstance(exc, (InvalidVerificationCodeError, TooManyVerificationAttemptsError)):
+            status_code = 400
+        elif isinstance(exc, (NoPasswordAuthError, OAuthProviderDisabledError)):
             status_code = 400
         elif isinstance(exc, AlreadyVerifiedError):
             status_code = 409

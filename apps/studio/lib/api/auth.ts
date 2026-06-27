@@ -1,5 +1,14 @@
 import { fetchPublic, fetchWithAuth } from "./client";
+import { resolveApiUrl } from "./config";
 import type { AuthUserResponse, OkResponse, RegisterResponse, User } from "@/modules/auth/types/auth";
+
+export const googleOAuthEnabled =
+  process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === "true";
+
+export function startGoogleLogin(returnTo = "/app"): void {
+  const params = new URLSearchParams({ return_to: returnTo });
+  window.location.assign(resolveApiUrl(`/v1/auth/google?${params}`));
+}
 
 export async function login(email: string, password: string): Promise<AuthUserResponse> {
   const res = await fetchPublic("/v1/auth/login", {
@@ -95,12 +104,15 @@ export async function changePassword(
 }
 
 export async function deleteAccount(
-  password: string,
   confirmation: "DELETE",
+  password?: string,
 ): Promise<OkResponse> {
   const res = await fetchWithAuth("/v1/auth/me", {
     method: "DELETE",
-    body: JSON.stringify({ password, confirmation }),
+    body: JSON.stringify({
+      password: password ?? null,
+      confirmation,
+    }),
   });
   return res.json();
 }

@@ -17,28 +17,18 @@ from core.schemas.auth import (
 from core.storage.avatar_store import ALLOWED_AVATAR_MIME
 from db.models.user import User
 from db.services.auth import AuthService
-from db.services.avatar_service import AvatarService, build_avatar_url
+from db.services.avatar_service import AvatarService
 from db.services.email_verification import EmailVerificationService
 from db.session import get_db
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.auth_responses import build_user_response
 from api.deps import get_current_user
 from api.rate_limit import rate_limit
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 _settings = get_settings()
-
-
-def _user_response(user: User) -> UserResponse:
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        display_name=user.display_name,
-        avatar_url=build_avatar_url(user),
-        email_verified=user.email_verified,
-        created_at=user.created_at,
-    )
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
@@ -53,7 +43,10 @@ async def register(
     verification_service = EmailVerificationService(session)
     await verification_service.send_verification_code(user)
     await session.refresh(user)
-    return RegisterResponse(user=_user_response(user), requires_verification=True)
+    return RegisterResponse(
+        user=await build_user_response(session, user),
+        requires_verification=True,
+    )
 
 
 @router.post("/verify-email", response_model=OkResponse)
@@ -92,7 +85,7 @@ async def login(
     user = await service.login(body.email, body.password)
     tokens = await service.issue_tokens(user)
     set_auth_cookies(response, tokens.access_token, tokens.refresh_token)
-    return AuthUserResponse(user=_user_response(user))
+    return AuthUserResponse(user=await build_user_response(session, user))
 
 
 @router.post("/refresh", response_model=OkResponse)
@@ -126,8 +119,11 @@ async def logout(
 
 
 @router.get("/me", response_model=UserResponse)
-async def me(current_user: User = Depends(get_current_user)) -> UserResponse:
-    return _user_response(current_user)
+async def me(
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    return await build_user_response(session, current_user)
 
 
 @router.patch("/me", response_model=UserResponse)
@@ -138,7 +134,7 @@ async def update_me(
 ) -> UserResponse:
     service = AuthService(session)
     user = await service.update_profile(current_user, body.display_name)
-    return _user_response(user)
+    return await build_user_response(session, user)
 
 
 @router.post("/me/avatar", response_model=UserResponse)
@@ -160,7 +156,7 @@ async def upload_my_avatar(
         user = await service.upload(current_user, data, content_type)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return _user_response(user)
+    return await build_user_response(session, user)
 
 
 @router.delete("/me/avatar", response_model=UserResponse)
@@ -170,7 +166,7 @@ async def delete_my_avatar(
 ) -> UserResponse:
     service = AvatarService(session)
     user = await service.remove(current_user)
-    return _user_response(user)
+    return await build_user_response(session, user)
 
 
 @router.post("/change-password", response_model=OkResponse)
