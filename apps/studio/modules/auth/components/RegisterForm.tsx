@@ -15,6 +15,7 @@ import { RegisterFormData, registerSchema } from "../schemas/auth.schema";
 import { useRegister } from "../hooks/useAuth";
 import { ApiError, mapFieldErrors } from "@/lib/api/errors";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { GitHubSignInButton } from "./GitHubSignInButton";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -70,6 +71,7 @@ export function RegisterForm() {
       )}
 
       <GoogleSignInButton disabled={registerMutation.isPending} />
+      <GitHubSignInButton disabled={registerMutation.isPending} />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

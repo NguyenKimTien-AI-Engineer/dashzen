@@ -2,7 +2,7 @@
 
 > **Tính năng:** Đăng nhập / đăng ký bằng Google cho DashZen Studio.
 >
-> **Trạng thái:** Planned (chưa implement)
+> **Trạng thái:** **Done** (2026-06-27)
 >
 > **Ngày lập:** 2026-06-26
 >
@@ -33,7 +33,7 @@ Google login sẽ **tái sử dụng** `AuthService.issue_tokens()` + `set_auth_
 
 | Out of scope | Ghi chú |
 |--------------|---------|
-| GitHub / Microsoft / Apple | Có thể mở rộng sau qua bảng `oauth_accounts` |
+| GitHub OAuth | **Planned** — [`github-oauth-login.md`](./github-oauth-login.md) |
 | Link/unlink Google trong Settings | Phase 2 |
 | Google One Tap | UX nâng cao, đánh giá sau |
 | better-auth migration | Giữ stack FastAPI tự build |

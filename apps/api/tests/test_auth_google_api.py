@@ -6,7 +6,8 @@ from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
-from core.auth.google_oauth import GoogleClaims, create_oauth_state_token, generate_pkce_pair
+from core.auth.google_oauth import GoogleClaims
+from core.auth.oauth_common import create_oauth_state_token, generate_pkce_pair
 from core.config import get_settings
 
 pytestmark = pytest.mark.asyncio
@@ -61,7 +62,7 @@ async def test_google_start_disabled_returns_error(client, monkeypatch):
 
 async def test_google_callback_sets_cookies(client, google_oauth_settings):
     verifier, _challenge = generate_pkce_pair()
-    state = create_oauth_state_token(verifier, "/app")
+    state = create_oauth_state_token(provider="google", verifier=verifier, return_to="/app")
     claims = _google_claims()
 
     with (
@@ -110,7 +111,7 @@ async def test_google_callback_links_existing_password_user(
     assert register_res.status_code == 201
 
     verifier, _challenge = generate_pkce_pair()
-    state = create_oauth_state_token(verifier, "/app")
+    state = create_oauth_state_token(provider="google", verifier=verifier, return_to="/app")
     claims = _google_claims(email=email)
 
     with (
@@ -145,7 +146,7 @@ async def test_change_password_rejects_oauth_only_user(
     google_oauth_settings,
 ):
     verifier, _challenge = generate_pkce_pair()
-    state = create_oauth_state_token(verifier, "/app")
+    state = create_oauth_state_token(provider="google", verifier=verifier, return_to="/app")
     claims = _google_claims()
 
     with (

@@ -59,12 +59,19 @@ class Settings(BaseSettings):
     auth_resend_rate_limit: str = "3/hour"
     auth_google_rate_limit: str = "10/minute"
     auth_google_callback_rate_limit: str = "20/minute"
+    auth_github_rate_limit: str = "10/minute"
+    auth_github_callback_rate_limit: str = "20/minute"
 
     google_oauth_enabled: bool = False
     google_client_id: str = ""
     google_client_secret: str = ""
     google_redirect_uri: str = "http://localhost:8000/v1/auth/google/callback"
     google_hd: str | None = None
+
+    github_oauth_enabled: bool = False
+    github_client_id: str = ""
+    github_client_secret: str = ""
+    github_redirect_uri: str = "http://localhost:8000/v1/auth/github/callback"
     oauth_state_ttl_seconds: int = 600
 
     studio_public_url: str = Field(

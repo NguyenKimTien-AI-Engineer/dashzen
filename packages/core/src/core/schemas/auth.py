@@ -43,7 +43,7 @@ class ResendVerificationRequest(BaseModel):
     email: EmailStr
 
 
-AuthProvider = Literal["password", "google"]
+AuthProvider = Literal["password", "google", "github"]
 
 
 class UserResponse(BaseModel):

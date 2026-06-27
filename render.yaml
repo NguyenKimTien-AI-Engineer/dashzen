@@ -67,6 +67,17 @@ services:
       # Studio URL for post-login redirect (e.g. https://dashzen-mu.vercel.app)
       - key: STUDIO_PUBLIC_URL
         sync: false
+      # ── GitHub OAuth (set secrets in Render dashboard) ──
+      - key: GITHUB_OAUTH_ENABLED
+        value: "true"
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      # Vercel same-origin proxy callback (recommended for auth cookies):
+      # https://<your-studio>.vercel.app/api/v1/auth/github/callback
+      - key: GITHUB_REDIRECT_URI
+        sync: false
       # Optional: restrict to Google Workspace domain
       # - key: GOOGLE_HD
       #   sync: false

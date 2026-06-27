@@ -5,9 +5,17 @@ import type { AuthUserResponse, OkResponse, RegisterResponse, User } from "@/mod
 export const googleOAuthEnabled =
   process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === "true";
 
+export const githubOAuthEnabled =
+  process.env.NEXT_PUBLIC_GITHUB_OAUTH_ENABLED === "true";
+
 export function startGoogleLogin(returnTo = "/app"): void {
   const params = new URLSearchParams({ return_to: returnTo });
   window.location.assign(resolveApiUrl(`/v1/auth/google?${params}`));
+}
+
+export function startGitHubLogin(returnTo = "/app"): void {
+  const params = new URLSearchParams({ return_to: returnTo });
+  window.location.assign(resolveApiUrl(`/v1/auth/github?${params}`));
 }
 
 export async function login(email: string, password: string): Promise<AuthUserResponse> {

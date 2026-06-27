@@ -1,4 +1,4 @@
-export type AuthProvider = "password" | "google";
+export type AuthProvider = "password" | "google" | "github";
 
 export type User = {
   id: string;

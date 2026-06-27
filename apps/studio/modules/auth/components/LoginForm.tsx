@@ -16,11 +16,15 @@ import { LoginFormData, loginSchema } from "../schemas/auth.schema";
 import { useLogin } from "../hooks/useAuth";
 import { ApiError } from "@/lib/api/errors";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { GitHubSignInButton } from "./GitHubSignInButton";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   oauth_state_invalid: "Sign-in expired. Please try again.",
-  oauth_exchange_failed: "Could not complete Google sign-in. Try again later.",
+  oauth_exchange_failed: "Could not complete sign-in. Try again later.",
   google_email_unverified: "Your Google email is not verified.",
+  github_email_unavailable:
+    "GitHub did not provide a verified email. Add a verified primary email in GitHub settings, then try again.",
+  github_account_inactive: "Your account has been deactivated.",
   account_exists_password:
     "An account with this email already exists. Sign in with your password first.",
 };
@@ -47,7 +51,7 @@ export function LoginForm() {
   useEffect(() => {
     const oauthError = searchParams?.get("error");
     if (!oauthError) return;
-    const message = OAUTH_ERROR_MESSAGES[oauthError] ?? "Google sign-in failed. Please try again.";
+    const message = OAUTH_ERROR_MESSAGES[oauthError] ?? "Sign-in failed. Please try again.";
     toast.error(message);
     router.replace("/login");
   }, [router, searchParams]);
@@ -114,6 +118,7 @@ export function LoginForm() {
       )}
 
       <GoogleSignInButton returnTo={returnTo} disabled={loginMutation.isPending} />
+      <GitHubSignInButton returnTo={returnTo} disabled={loginMutation.isPending} />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

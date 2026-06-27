@@ -63,7 +63,7 @@ class AlreadyVerifiedError(AuthError):
 
 class OAuthProviderDisabledError(AuthError):
     def __init__(self) -> None:
-        super().__init__("oauth_provider_disabled", "Google sign-in is not configured.")
+        super().__init__("oauth_provider_disabled", "This sign-in provider is not configured.")
 
 
 class OAuthStateInvalidError(AuthError):
@@ -84,6 +84,22 @@ class GoogleEmailUnverifiedError(AuthError):
         super().__init__(
             "google_email_unverified",
             "Your Google email address is not verified.",
+        )
+
+
+class GitHubEmailUnavailableError(AuthError):
+    def __init__(self) -> None:
+        super().__init__(
+            "github_email_unavailable",
+            "No verified email on your GitHub account. Make a primary email public and try again.",
+        )
+
+
+class GitHubAccountInactiveError(AuthError):
+    def __init__(self) -> None:
+        super().__init__(
+            "github_account_inactive",
+            "Your account has been deactivated.",
         )
 
 

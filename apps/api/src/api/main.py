@@ -13,6 +13,7 @@ from api.monitoring.cleanup import run_cleanup_loop
 from api.rate_limit import limiter
 from api.routes.artifacts import router as artifacts_router
 from api.routes.auth import router as auth_router
+from api.routes.auth_github import router as auth_github_router
 from api.routes.auth_google import router as auth_google_router
 from api.routes.compact import router as compact_router
 from api.routes.export import router as export_router
@@ -60,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(auth_google_router)
+    app.include_router(auth_github_router)
     app.include_router(tasks_router)
     app.include_router(projects_router)
     app.include_router(artifacts_router)

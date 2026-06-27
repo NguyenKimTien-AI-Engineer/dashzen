@@ -1,4 +1,4 @@
-from core.auth.google_oauth import (
+from core.auth.oauth_common import (
     create_oauth_state_token,
     generate_pkce_pair,
     parse_oauth_state_token,
@@ -15,10 +15,23 @@ def test_generate_pkce_pair_produces_verifier_and_challenge():
 
 def test_oauth_state_token_roundtrip():
     verifier, _ = generate_pkce_pair()
-    token = create_oauth_state_token(verifier, "/app/projects")
-    payload = parse_oauth_state_token(token)
+    token = create_oauth_state_token(
+        provider="google", verifier=verifier, return_to="/app/projects"
+    )
+    payload = parse_oauth_state_token(token, expected_provider="google")
     assert payload.verifier == verifier
     assert payload.return_to == "/app/projects"
+
+
+def test_oauth_state_rejects_wrong_provider():
+    verifier, _ = generate_pkce_pair()
+    token = create_oauth_state_token(provider="google", verifier=verifier, return_to="/app")
+    try:
+        parse_oauth_state_token(token, expected_provider="github")
+    except ValueError as exc:
+        assert "provider" in str(exc).lower() or "invalid" in str(exc).lower()
+    else:
+        raise AssertionError("expected ValueError for wrong provider")
 
 
 def test_sanitize_return_to_rejects_external_paths():
