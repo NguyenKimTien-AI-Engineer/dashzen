@@ -1,4 +1,5 @@
 import { fetchWithAuth } from "./client";
+import { resolveApiUrl } from "./config";
 import type {
   FileArtifact,
   Message,
@@ -7,8 +8,6 @@ import type {
   StreamRequest,
   Task,
 } from "@/modules/task/types/api";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function createTask(): Promise<Task> {
   const res = await fetchWithAuth("/v1/tasks", { method: "POST", body: "{}" });
@@ -65,7 +64,7 @@ export async function streamTask(
   body: StreamRequest,
   signal?: AbortSignal,
 ): Promise<Response> {
-  const url = `${API_URL}/v1/tasks/${taskId}/stream`;
+  const url = resolveApiUrl(`/v1/tasks/${taskId}/stream`);
   return fetch(url, {
     method: "POST",
     credentials: "include",
@@ -86,7 +85,7 @@ export async function subscribeTaskStream(
   cursor = 0,
   signal?: AbortSignal,
 ): Promise<Response> {
-  const url = `${API_URL}/v1/tasks/${taskId}/stream?cursor=${cursor}`;
+  const url = resolveApiUrl(`/v1/tasks/${taskId}/stream?cursor=${cursor}`);
   return fetch(url, {
     method: "GET",
     credentials: "include",

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getApiBackendUrl } from "./config";
 
 export async function serverFetch(
   path: string,
@@ -12,7 +12,8 @@ export async function serverFetch(
     .map((cookie) => `${cookie.name}=${cookie.value}`)
     .join("; ");
 
-  const url = path.startsWith("http") ? path : `${API_URL}${path}`;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const url = path.startsWith("http") ? path : `${getApiBackendUrl()}${normalized}`;
 
   return fetch(url, {
     ...init,

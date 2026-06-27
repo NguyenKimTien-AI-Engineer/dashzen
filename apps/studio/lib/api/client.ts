@@ -1,6 +1,5 @@
+import { resolveApiUrl } from "./config";
 import { ApiError, ApiErrorBody, RateLimitError, SessionExpiredError } from "./errors";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 let refreshPromise: Promise<boolean> | null = null;
 
@@ -8,7 +7,7 @@ async function tryRefreshToken(): Promise<boolean> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
-        const res = await fetch(`${API_URL}/v1/auth/refresh`, {
+        const res = await fetch(resolveApiUrl("/v1/auth/refresh"), {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -32,7 +31,7 @@ export async function refreshSession(): Promise<boolean> {
 /** Clear stale cookies via logout endpoint, then go to login. Does not delete the account. */
 export async function clearSessionAndLogin(returnTo?: string): Promise<void> {
   try {
-    await fetch(`${API_URL}/v1/auth/logout`, {
+    await fetch(resolveApiUrl("/v1/auth/logout"), {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -59,7 +58,7 @@ export async function fetchWithAuth(
   options: RequestInit = {},
   retried = false,
 ): Promise<Response> {
-  const url = path.startsWith("http") ? path : `${API_URL}${path}`;
+  const url = resolveApiUrl(path);
   const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
   const res = await fetch(url, {
     ...options,
@@ -99,7 +98,7 @@ export async function fetchPublic(
   path: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  const url = path.startsWith("http") ? path : `${API_URL}${path}`;
+  const url = resolveApiUrl(path);
   const res = await fetch(url, {
     ...options,
     credentials: "include",
