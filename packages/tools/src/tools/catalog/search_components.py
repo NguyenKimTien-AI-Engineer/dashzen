@@ -10,8 +10,9 @@ from tools.context import ToolContext
 DEFINITION = ToolDefinition(
     name="search_components",
     description=(
-        "Search the DashZen widget component catalog by keyword or widget type "
-        "(kpi, barChart, lineChart, pieChart, table, filterBar)."
+        "Search the widget component catalog by type or keyword. "
+        "Returns component metadata and implementation guidance. "
+        "Use when building dashboard.html to look up what a widget type supports."
     ),
     parameters={
         "type": "object",
@@ -19,7 +20,8 @@ DEFINITION = ToolDefinition(
             "query": {
                 "type": "string",
                 "description": (
-                    "Search term — widget type id or keyword (e.g. 'kpi', 'chart', 'filter')"
+                    "Widget type or keyword to search for "
+                    "(e.g. 'kpi', 'barChart', 'lineChart', 'pieChart', 'table', 'gauge', 'filterBar')"
                 ),
             },
         },

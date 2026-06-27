@@ -8,7 +8,12 @@ from tools.context import ToolContext
 
 DEFINITION = ToolDefinition(
     name="list_file",
-    description="List all files in the task workspace.",
+    description=(
+        "List all files currently in the workspace. "
+        "Returns a JSON array with name, size, and kind for each file. "
+        "Use once at the start of a pipeline run to check which artifact files exist "
+        "(spec.md, bindings.md, layout.md, dashboard.html). Do not call again in the same turn."
+    ),
     parameters={"type": "object", "properties": {}, "required": []},
 )
 

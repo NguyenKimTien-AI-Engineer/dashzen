@@ -14,7 +14,7 @@ async def store_refresh_token(
 ) -> RefreshToken:
     token = RefreshToken(jti=jti, user_id=user_id, expires_at=expires_at)
     session.add(token)
-    await session.commit()
+    await session.flush()
     await session.refresh(token)
     return token
 
@@ -25,7 +25,7 @@ async def get_refresh_token(session: AsyncSession, jti: str) -> RefreshToken | N
 
 async def revoke_refresh_token(session: AsyncSession, jti: str) -> None:
     await session.execute(update(RefreshToken).where(RefreshToken.jti == jti).values(revoked=True))
-    await session.commit()
+    await session.flush()
 
 
 async def revoke_all_user_refresh_tokens(session: AsyncSession, user_id: UUID) -> None:
@@ -34,4 +34,4 @@ async def revoke_all_user_refresh_tokens(session: AsyncSession, user_id: UUID) -
         .where(RefreshToken.user_id == user_id, RefreshToken.revoked.is_(False))
         .values(revoked=True)
     )
-    await session.commit()
+    await session.flush()

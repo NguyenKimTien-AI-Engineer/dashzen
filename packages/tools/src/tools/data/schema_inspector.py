@@ -14,13 +14,17 @@ _TRAVERSAL = re.compile(r"\.\./|\.\.\\|^/|^\\")
 
 DEFINITION = ToolDefinition(
     name="schema_inspector",
-    description="Return the data source schema (tables, columns, types) from workspace CSV files.",
+    description=(
+        "Return structured schema (table name, column names, and types) from workspace CSV files. "
+        "Use this to verify which columns exist before writing data bindings. "
+        "Omit source to inspect all CSVs in the workspace at once."
+    ),
     parameters={
         "type": "object",
         "properties": {
             "source": {
                 "type": "string",
-                "description": "CSV file name in workspace (optional — all CSVs when omitted)",
+                "description": "CSV file name to inspect (e.g. orders.csv). Omit to inspect all CSV files in the workspace.",
             },
         },
         "required": [],

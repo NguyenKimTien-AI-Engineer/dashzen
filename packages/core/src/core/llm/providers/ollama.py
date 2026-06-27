@@ -257,15 +257,17 @@ class OllamaProvider:
 
         last_exc: httpx.HTTPStatusError | None = None
         for attempt in range(_MAX_RETRIES):
+            yielded_any = False
             try:
                 async for delta in self._stream_once(payload):
+                    yielded_any = True
                     yield delta
                 return
             except _RETRYABLE_NETWORK:
-                if attempt < _MAX_RETRIES - 1:
-                    await asyncio.sleep(2**attempt)
-                    continue
-                raise
+                if yielded_any or attempt >= _MAX_RETRIES - 1:
+                    raise
+                await asyncio.sleep(2**attempt)
+                continue
             except httpx.HTTPStatusError as exc:
                 if think_param is not None and is_ollama_think_rejection(exc):
                     log.warning(
@@ -278,7 +280,7 @@ class OllamaProvider:
                         yield delta
                     return
                 last_exc = exc
-                if exc.response.status_code not in _RETRYABLE_STATUS or attempt >= _MAX_RETRIES - 1:
+                if yielded_any or exc.response.status_code not in _RETRYABLE_STATUS or attempt >= _MAX_RETRIES - 1:
                     raise
                 await asyncio.sleep(2**attempt)
         if last_exc:

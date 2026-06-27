@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+import time
 from typing import Literal
 
 import redis.asyncio as aioredis
@@ -101,6 +102,7 @@ async def resolve_gate(
 async def register_gate(task_id: str, call_id: str) -> tuple[bool, str]:
     key = _gate_key(task_id, call_id)
     consecutive_errors = 0
+    deadline = time.monotonic() + GATE_TTL_SEC
 
     while True:
         redis = await _get_redis()
@@ -116,6 +118,8 @@ async def register_gate(task_id: str, call_id: str) -> tuple[bool, str]:
             finally:
                 await redis.aclose()
         else:
+            if time.monotonic() >= deadline:
+                return False, ""
             value = _mem_gates.get(key)
 
         if value is None:
@@ -160,6 +164,7 @@ async def resolve_ask_gate(task_id: str, call_id: str, answer: str) -> bool:
 async def register_ask_gate(task_id: str, call_id: str) -> str:
     key = _ask_key(task_id, call_id)
     consecutive_errors = 0
+    deadline = time.monotonic() + GATE_TTL_SEC
 
     while True:
         redis = await _get_redis()
@@ -175,6 +180,8 @@ async def register_ask_gate(task_id: str, call_id: str) -> str:
             finally:
                 await redis.aclose()
         else:
+            if time.monotonic() >= deadline:
+                return ""
             value = _mem_ask.get(key)
 
         if value is None:

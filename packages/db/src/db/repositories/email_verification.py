@@ -16,7 +16,7 @@ async def revoke_active_codes_for_user(session: AsyncSession, user_id: UUID) -> 
         )
         .values(consumed_at=now)
     )
-    await session.commit()
+    await session.flush()
 
 
 async def create_verification_code(
@@ -33,7 +33,7 @@ async def create_verification_code(
         max_attempts=max_attempts,
     )
     session.add(record)
-    await session.commit()
+    await session.flush()
     await session.refresh(record)
     return record
 
@@ -64,7 +64,7 @@ async def increment_verification_attempts(
     if record is None:
         return
     record.attempts += 1
-    await session.commit()
+    await session.flush()
 
 
 async def consume_verification_code(session: AsyncSession, code_id: UUID) -> None:
@@ -73,4 +73,4 @@ async def consume_verification_code(session: AsyncSession, code_id: UUID) -> Non
         .where(EmailVerificationCode.id == code_id)
         .values(consumed_at=datetime.now(UTC))
     )
-    await session.commit()
+    await session.flush()

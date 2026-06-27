@@ -36,10 +36,6 @@ def parse_frontmatter(text: str) -> tuple[dict[str, object], str]:
     return data, text[match.end() :]
 
 
-def _format_memory(type_: str, phase: str) -> str:
-    return format_memory(type_, phase)
-
-
 async def read_memory(
     db: AsyncSession,
     task_id: uuid.UUID,

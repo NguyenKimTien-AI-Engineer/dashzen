@@ -8,8 +8,8 @@ from collections.abc import AsyncGenerator
 import redis.asyncio as aioredis
 from core.config import get_settings
 
-_LOCK_TTL_SEC = 90
-_LOCK_REFRESH_INTERVAL_SEC = 20.0
+from agents.orchestration.constants import LOCK_REFRESH_INTERVAL_SEC, LOCK_TTL_SEC
+
 _LOCK_KEY_PREFIX = "lock:stream:"
 
 _mem_locks: dict[str, str] = {}
@@ -38,7 +38,7 @@ class StreamLock:
     async def acquire(self) -> None:
         self._redis = await _get_redis()
         if self._redis is not None:
-            ok = await self._redis.set(self._key, self._token, nx=True, ex=_LOCK_TTL_SEC)
+            ok = await self._redis.set(self._key, self._token, nx=True, ex=LOCK_TTL_SEC)
             if not ok:
                 raise StreamLockError("Task is already being processed")
         else:
@@ -67,12 +67,12 @@ class StreamLock:
 
     async def _heartbeat(self) -> None:
         while True:
-            await asyncio.sleep(_LOCK_REFRESH_INTERVAL_SEC)
+            await asyncio.sleep(LOCK_REFRESH_INTERVAL_SEC)
             try:
                 if self._redis is not None:
                     current = await self._redis.get(self._key)
                     if current == self._token:
-                        await self._redis.expire(self._key, _LOCK_TTL_SEC)
+                        await self._redis.expire(self._key, LOCK_TTL_SEC)
             except Exception:
                 pass
 

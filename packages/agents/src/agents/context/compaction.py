@@ -65,7 +65,11 @@ async def _summarize_messages(messages: list[LLMMessage]) -> str:
     transcript = "\n".join(lines)
     prompt = (
         "Summarize the following conversation history concisely. "
-        "Preserve key facts, decisions, file names, and user goals.\n\n"
+        "You MUST preserve: user goals, key decisions made, all workspace file names that were "
+        "created or modified (e.g. spec.md, bindings.json, layout.json, dashboard.html), "
+        "data schema details (column names, file paths), widget specifications, "
+        "and the current workflow phase. "
+        "The summary will replace this history — downstream agents depend on it to continue work correctly.\n\n"
         f"{transcript}"
     )
     client = get_llm_client()

@@ -21,7 +21,7 @@ from agents.context.accounting import calibrate_tokens_per_char, estimate_chars
 from agents.context.compaction import CompactionState, compact_if_over_budget
 from agents.context.history import build_history
 from agents.memory.context_block import build_context_block
-from agents.memory.memory_file import read_memory
+from agents.memory.memory_file import format_memory, read_memory
 from agents.orchestration.constants import (
     MAX_AGENTS_PER_TURN,
     MAX_ITERATIONS,
@@ -47,6 +47,23 @@ from agents.tools.read_cache import ReadCache
 log = structlog.get_logger()
 
 
+def _emit_run_metrics(*, status: str, iterations: int, token_total: int) -> None:
+    try:
+        from api.monitoring.metrics import record_agent_run
+        record_agent_run(status=status, iterations=iterations, token_total=token_total)
+    except Exception:
+        pass  # metrics are non-critical; never fail the main loop
+
+
+def _record_tool_metrics(tool_calls_raw: list[dict]) -> None:  # type: ignore[type-arg]
+    try:
+        from api.monitoring.metrics import record_tool_call
+        for tc in tool_calls_raw:
+            record_tool_call(tc.get("name", "unknown"))
+    except Exception:
+        pass
+
+
 async def main_loop(
     ctx: RuntimeContext,
     user_message: str,
@@ -69,6 +86,8 @@ async def main_loop(
     tool_rejected = False
     activity_acc = ActivityLogAccumulator()
     assistant_msg_id: uuid.UUID | None = None
+    _iteration_count = 0
+    _total_prompt_tokens = 0
 
     def emit_logged(event: object) -> None:
         activity_acc.record(event)
@@ -128,6 +147,7 @@ async def main_loop(
             )
 
         for iteration in range(MAX_ITERATIONS):
+            _iteration_count = iteration + 1
             if ctx.abort_signal.is_set():
                 break
 
@@ -143,14 +163,9 @@ async def main_loop(
             )
 
             memory_state = await read_memory(ctx.db, ctx.task_id, ctx.artifact_buffer)
-
-            memory_content = ctx.artifact_buffer.get("memory.md") or ""
-            if not memory_content:
-                from db.services.file_service import get_file
-
-                memory_file = await get_file(ctx.db, ctx.task_id, "memory.md")
-                if memory_file and memory_file.content:
-                    memory_content = memory_file.content
+            memory_content = (
+                format_memory(memory_state.type, memory_state.phase) if memory_state.phase else ""
+            )
             workflow_content = (
                 load_workflow(memory_state.type, memory_state.phase) if memory_state.phase else ""
             )
@@ -198,6 +213,7 @@ async def main_loop(
                     break
 
             if prompt_tokens:
+                _total_prompt_tokens += prompt_tokens
                 compaction_state.last_real_prompt_tokens = prompt_tokens
                 compaction_state.tokens_per_char = calibrate_tokens_per_char(
                     prompt_tokens, [*messages, context_msg]
@@ -228,29 +244,24 @@ async def main_loop(
             if not tool_calls_raw:
                 break
 
+            _record_tool_metrics(tool_calls_raw)
             calls = [
                 ToolCall(call_id=tc["id"], name=tc["name"], args=tc["input"])
                 for tc in tool_calls_raw
             ]
 
             tool_results: dict[str, str] = {}
-            overflow_ids: list[str] = []
 
             spawn_calls = [c for c in calls if c.name == "spawn_agent"]
             other_calls = [c for c in calls if c.name != "spawn_agent"]
 
             if other_calls:
-                other_results, other_overflow = await execute_tool_calls(
-                    other_calls, tool_ctx, detector, total_spawn_count
-                )
+                other_results = await execute_tool_calls(other_calls, tool_ctx, detector)
                 tool_results.update(other_results)
-                overflow_ids.extend(other_overflow)
 
             for sc in spawn_calls:
                 if total_spawn_count >= MAX_AGENTS_PER_TURN:
-                    result_str = f"[Error] Max {MAX_AGENTS_PER_TURN} spawns reached."
-                    overflow_ids.append(sc.call_id)
-                    tool_results[sc.call_id] = result_str
+                    tool_results[sc.call_id] = f"[Error] Max {MAX_AGENTS_PER_TURN} spawns reached."
                 else:
                     agent_name = str(sc.args.get("agent", "")).strip()
                     agent_key = agent_name.lower()
@@ -308,6 +319,17 @@ async def main_loop(
             if tool_rejected:
                 break
 
+        else:
+            log.warning("max_iterations_reached", task_id=str(ctx.task_id), limit=MAX_ITERATIONS)
+            emit_logged(
+                StreamErrorEvent(
+                    message=(
+                        f"Agent reached the {MAX_ITERATIONS}-iteration limit without finishing. "
+                        "Try breaking your request into smaller steps."
+                    )
+                )
+            )
+
         await _persist_activity_log()
 
         await ctx.artifact_buffer.flush_and_remap(ctx.db, ctx.task_id, assistant_msg_id)
@@ -326,10 +348,12 @@ async def main_loop(
                 await ctx.db.commit()
                 emit_logged(TaskMetaEvent(title=title))
 
+        _emit_run_metrics(status="success", iterations=_iteration_count, token_total=_total_prompt_tokens)
         emit_logged(StreamDoneEvent())
 
     except Exception as exc:
         log.exception("main_loop_error", error=str(exc))
+        _emit_run_metrics(status="error", iterations=_iteration_count, token_total=_total_prompt_tokens)
         message = format_llm_error(exc)
         err_event = StreamErrorEvent(message=message)
         emit_logged(err_event)

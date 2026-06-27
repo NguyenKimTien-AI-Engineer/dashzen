@@ -8,18 +8,20 @@ from tools.context import ToolContext
 DEFINITION = ToolDefinition(
     name="set_memory",
     description=(
-        "Update workflow state (type and phase). Returns workflow instructions for the new phase."
+        "Transition the workflow to a new phase and receive the instructions for that phase. "
+        "Call this when the current phase is complete and the next phase must begin — "
+        "for example, moving from plan-dashboard to create-dashboard, or from create-dashboard to edit-dashboard."
     ),
     parameters={
         "type": "object",
         "properties": {
             "type": {
                 "type": "string",
-                "description": "Workflow type: chat or dashboard",
+                "description": "Workflow type: 'chat' or 'dashboard'",
             },
             "phase": {
                 "type": "string",
-                "description": "Workflow phase (e.g. create-dashboard)",
+                "description": "Target phase: 'plan-dashboard' | 'create-dashboard' | 'edit-dashboard' | 'repair-dashboard'",
             },
         },
         "required": ["type", "phase"],

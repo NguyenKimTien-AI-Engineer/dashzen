@@ -11,20 +11,21 @@ _TRAVERSAL = re.compile(r"\.\./|\.\.\\|^/|^\\")
 DEFINITION = ToolDefinition(
     name="edit_file",
     description=(
-        "Patch a portion of a workspace file via search/replace. "
-        "Stages the file; it is persisted when the stream completes."
+        "Modify an existing workspace file by replacing one specific text block with another. "
+        "Use this instead of write_file when making targeted changes to a file that already exists. "
+        "Read the file first to get the exact text — old_string must match character-for-character."
     ),
     parameters={
         "type": "object",
         "properties": {
-            "path": {"type": "string", "description": "File name (e.g. page.tsx)"},
+            "path": {"type": "string", "description": "File name (e.g. dashboard.html). No path separators."},
             "old_string": {
                 "type": "string",
-                "description": "Exact text to find in the file",
+                "description": "Exact text to find and replace — must match the file content exactly, including whitespace and newlines. Read the file first.",
             },
             "new_string": {
                 "type": "string",
-                "description": "Replacement text",
+                "description": "Text to replace old_string with. Use an empty string to delete old_string.",
             },
         },
         "required": ["path", "old_string", "new_string"],

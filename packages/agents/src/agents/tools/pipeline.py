@@ -165,7 +165,7 @@ async def execute_tool_pipeline(
         and not result.startswith("[Error]")
     ):
         path = str(call.args.get("path", "")).strip()
-        if path and "written" in result.lower():
+        if path:
             ctx.agent_written_paths.add(path)
 
     if is_read_only(call.name):

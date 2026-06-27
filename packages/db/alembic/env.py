@@ -10,6 +10,7 @@ from db.models.agent_run import AgentRun  # noqa: F401
 from db.models.email_verification import EmailVerificationCode  # noqa: F401
 from db.models.file import File  # noqa: F401
 from db.models.message import Message  # noqa: F401
+from db.models.message_action import MessageAction  # noqa: F401
 from db.models.project import Project  # noqa: F401
 from db.models.refresh_token import RefreshToken  # noqa: F401
 from db.models.task import Task  # noqa: F401

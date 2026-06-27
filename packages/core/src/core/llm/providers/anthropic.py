@@ -119,6 +119,10 @@ class AnthropicProvider:
             payload["system"] = system
         if tools:
             payload["tools"] = _build_tools(tools)
+        if thinking_enabled:
+            budget_tokens = max(1024, max_tokens // 2)
+            payload["thinking"] = {"type": "enabled", "budget_tokens": budget_tokens}
+            payload["temperature"] = 1
 
         pending_tool: dict = {}  # type: ignore[type-arg]
         prompt_tokens: int | None = None

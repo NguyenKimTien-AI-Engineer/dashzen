@@ -1,13 +1,20 @@
 import uuid
 from collections.abc import Sequence
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.file import File
 from db.models.task import Task
 
-# Deliverables surfaced in the global Artifacts gallery
+
+def _published_artifact_names() -> frozenset[str]:
+    from core.config import get_settings
+    names = get_settings().published_artifact_names
+    return frozenset(n.strip() for n in names.split(",") if n.strip())
+
+
+# Kept for import compatibility; prefer _published_artifact_names() for dynamic config
 PUBLISHED_ARTIFACT_NAMES: frozenset[str] = frozenset({"dashboard.html"})
 
 
@@ -177,7 +184,7 @@ async def list_user_artifacts(
     *,
     names: frozenset[str] | None = None,
 ) -> list[tuple[File, Task]]:
-    allowed = names or PUBLISHED_ARTIFACT_NAMES
+    allowed = names or _published_artifact_names()
     result = await db.execute(
         select(File, Task)
         .join(Task, File.task_id == Task.id)
@@ -230,6 +237,39 @@ def _kind_from_content_type(content_type: str | None) -> str:
     if content_type == "application/pdf":
         return "binary"
     return "text"
+
+
+async def cleanup_old_file_versions(
+    db: AsyncSession,
+    task_id: uuid.UUID,
+    *,
+    keep_versions: int = 10,
+) -> int:
+    """Delete non-current file versions beyond keep_versions per (task_id, name).
+
+    Returns the number of deleted rows.
+    """
+    all_files_result = await db.execute(
+        select(File.name).where(File.task_id == task_id).distinct()
+    )
+    file_names = [row[0] for row in all_files_result]
+    total_deleted = 0
+
+    for name in file_names:
+        versions_result = await db.execute(
+            select(File.id)
+            .where(File.task_id == task_id, File.name == name, File.is_current.is_(False))
+            .order_by(File.version.desc())
+            .offset(keep_versions)
+        )
+        old_ids = [row[0] for row in versions_result]
+        if old_ids:
+            result = await db.execute(delete(File).where(File.id.in_(old_ids)))
+            total_deleted += result.rowcount
+
+    if total_deleted:
+        await db.flush()
+    return total_deleted
 
 
 async def save_upload(

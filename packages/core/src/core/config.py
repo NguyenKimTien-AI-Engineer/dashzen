@@ -108,6 +108,10 @@ class Settings(BaseSettings):
         default="data/avatars",
         description="Local directory for user avatar files",
     )
+    published_artifact_names: str = Field(
+        default="dashboard.html",
+        description="Comma-separated artifact file names surfaced in the Artifacts gallery",
+    )
 
     @model_validator(mode="after")
     def validate_jwt_config(self) -> Self:

@@ -23,7 +23,7 @@ async def create_user(
 ) -> User:
     user = User(email=email.lower(), password_hash=password_hash, display_name=display_name)
     session.add(user)
-    await session.commit()
+    await session.flush()
     await session.refresh(user)
     return user
 
@@ -32,7 +32,7 @@ async def update_last_login(session: AsyncSession, user_id: UUID) -> None:
     await session.execute(
         update(User).where(User.id == user_id).values(last_login_at=datetime.now(UTC))
     )
-    await session.commit()
+    await session.flush()
 
 
 async def mark_email_verified(session: AsyncSession, user_id: UUID) -> None:
@@ -40,12 +40,12 @@ async def mark_email_verified(session: AsyncSession, user_id: UUID) -> None:
     await session.execute(
         update(User).where(User.id == user_id).values(email_verified=True, email_verified_at=now)
     )
-    await session.commit()
+    await session.flush()
 
 
 async def update_user_display_name(session: AsyncSession, user_id: UUID, display_name: str) -> User:
     await session.execute(update(User).where(User.id == user_id).values(display_name=display_name))
-    await session.commit()
+    await session.flush()
     user = await get_user_by_id(session, user_id)
     assert user is not None
     await session.refresh(user)
@@ -56,7 +56,7 @@ async def update_user_avatar_key(
     session: AsyncSession, user_id: UUID, avatar_key: str | None
 ) -> User:
     await session.execute(update(User).where(User.id == user_id).values(avatar_key=avatar_key))
-    await session.commit()
+    await session.flush()
     user = await get_user_by_id(session, user_id)
     assert user is not None
     await session.refresh(user)
@@ -69,7 +69,7 @@ async def update_user_password_hash(
     await session.execute(
         update(User).where(User.id == user_id).values(password_hash=password_hash)
     )
-    await session.commit()
+    await session.flush()
 
 
 async def delete_user(session: AsyncSession, user_id: UUID) -> None:
@@ -77,4 +77,4 @@ async def delete_user(session: AsyncSession, user_id: UUID) -> None:
     if user is None:
         return
     await session.delete(user)
-    await session.commit()
+    await session.flush()

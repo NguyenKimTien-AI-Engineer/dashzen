@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,7 +45,7 @@ async def update_task(db: AsyncSession, task_id: uuid.UUID, **fields: object) ->
     filtered = {k: v for k, v in fields.items() if k in allowed}
     if not filtered:
         return None
-    filtered["updated_at"] = datetime.now()  # type: ignore[assignment]
+    filtered["updated_at"] = datetime.now(UTC)  # type: ignore[assignment]
     await db.execute(update(Task).where(Task.id == task_id).values(**filtered))
     await db.flush()
     result = await db.execute(select(Task).where(Task.id == task_id))

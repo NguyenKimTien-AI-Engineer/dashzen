@@ -10,11 +10,14 @@ _TRAVERSAL = re.compile(r"\.\./|\.\.\\|^/|^\\")
 
 DEFINITION = ToolDefinition(
     name="read_file",
-    description="Read the content of a workspace file by name.",
+    description=(
+        "Read a workspace file and return its full content as text. "
+        "Use this to read any pipeline file (spec.md, bindings.md, layout.md, dashboard.html) before editing it."
+    ),
     parameters={
         "type": "object",
         "properties": {
-            "path": {"type": "string", "description": "File name in workspace (e.g. spec.md)"},
+            "path": {"type": "string", "description": "File name in workspace (e.g. spec.md). No path separators."},
         },
         "required": ["path"],
     },

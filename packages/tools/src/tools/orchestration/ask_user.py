@@ -6,13 +6,17 @@ from tools.context import ToolContext
 
 DEFINITION = ToolDefinition(
     name="ask_user",
-    description="Ask the user a question and wait for their answer.",
+    description=(
+        "Send a question to the user and wait for their reply. "
+        "Use only when a critical fact is missing that cannot be inferred — one focused question per call. "
+        "Do not use for optional clarifications or details that can be reasonably assumed."
+    ),
     parameters={
         "type": "object",
         "properties": {
             "question": {
                 "type": "string",
-                "description": "Question to present to the user",
+                "description": "Clear, specific question for the user. Ask one question only.",
             },
         },
         "required": ["question"],

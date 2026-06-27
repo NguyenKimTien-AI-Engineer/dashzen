@@ -73,6 +73,7 @@ class OpenRouterProvider:
             "max_tokens": max_tokens,
             "temperature": temperature,
             "stream": True,
+            "stream_options": {"include_usage": True},
         }
         if tools:
             payload["tools"] = _build_tools(tools)
@@ -92,9 +93,9 @@ class OpenRouterProvider:
                     if not line.startswith("data:"):
                         continue
                     raw = line.removeprefix("data:").strip()
-                    if not raw or raw == "[DONE]":
-                        if raw == "[DONE]":
-                            break
+                    if raw == "[DONE]":
+                        break
+                    if not raw:
                         continue
                     try:
                         ev = json.loads(raw)

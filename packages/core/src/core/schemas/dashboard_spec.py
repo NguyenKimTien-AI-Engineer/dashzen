@@ -61,12 +61,12 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, object], str]:
 
 
 def _section(body: str, heading: str) -> str:
-    pattern = re.compile(rf"^#\s+{re.escape(heading)}\s*$", re.MULTILINE | re.IGNORECASE)
+    pattern = re.compile(rf"^#{{{1,4}}}\s+{re.escape(heading)}\s*$", re.MULTILINE | re.IGNORECASE)
     match = pattern.search(body)
     if not match:
         return ""
     start = match.end()
-    next_heading = re.search(r"^#\s+", body[start:], re.MULTILINE)
+    next_heading = re.search(r"^#{1,4}\s+", body[start:], re.MULTILINE)
     end = start + next_heading.start() if next_heading else len(body)
     return body[start:end]
 
@@ -180,8 +180,10 @@ def validate_dashboard_html(content: str) -> None:
         raise ValueError("dashboard.html must be valid HTML5 (<!DOCTYPE html>)")
     if "tailwindcss.com" not in lower and "tailwind" not in lower:
         raise ValueError("dashboard.html must include Tailwind CSS")
+    if "echarts" not in lower:
+        raise ValueError("dashboard.html must include ECharts for chart rendering")
     if "<!-- builder -->" not in stripped:
-        raise ValueError("dashboard.html must end with <!-- builder --> marker")
+        raise ValueError("dashboard.html must contain <!-- builder --> marker")
 
 
 def validate_page_tsx(content: str) -> None:
