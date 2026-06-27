@@ -10,7 +10,8 @@ DEFINITION = ToolDefinition(
     description=(
         "Transition the workflow to a new phase and receive the instructions for that phase. "
         "Call this when the current phase is complete and the next phase must begin — "
-        "for example, moving from plan-dashboard to create-dashboard, or from create-dashboard to edit-dashboard."
+        "for example, moving from plan-dashboard to create-dashboard, "
+        "or from create-dashboard to edit-dashboard."
     ),
     parameters={
         "type": "object",
@@ -21,7 +22,10 @@ DEFINITION = ToolDefinition(
             },
             "phase": {
                 "type": "string",
-                "description": "Target phase: 'plan-dashboard' | 'create-dashboard' | 'edit-dashboard' | 'repair-dashboard'",
+                "description": (
+                    "Target phase: 'plan-dashboard' | 'create-dashboard' | "
+                    "'edit-dashboard' | 'repair-dashboard'"
+                ),
             },
         },
         "required": ["type", "phase"],

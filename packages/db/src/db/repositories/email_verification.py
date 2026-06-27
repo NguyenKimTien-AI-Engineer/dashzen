@@ -65,6 +65,9 @@ async def increment_verification_attempts(
         return
     record.attempts += 1
     await session.flush()
+    # Persist attempt count even when verify_email raises InvalidVerificationCodeError
+    # and get_db rolls back the surrounding transaction.
+    await session.commit()
 
 
 async def consume_verification_code(session: AsyncSession, code_id: UUID) -> None:

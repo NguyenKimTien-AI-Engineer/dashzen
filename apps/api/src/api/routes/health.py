@@ -43,8 +43,8 @@ async def ready() -> dict[str, Any]:
 
     # Redis check
     try:
-        from core.config import get_settings
         import redis.asyncio as aioredis
+        from core.config import get_settings
 
         settings = get_settings()
         if settings.redis_url:

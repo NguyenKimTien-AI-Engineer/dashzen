@@ -24,7 +24,10 @@ DEFINITION = ToolDefinition(
         "properties": {
             "source": {
                 "type": "string",
-                "description": "CSV file name to inspect (e.g. orders.csv). Omit to inspect all CSV files in the workspace.",
+                "description": (
+                    "CSV file name to inspect (e.g. orders.csv). "
+                    "Omit to inspect all CSV files in the workspace."
+                ),
             },
         },
         "required": [],

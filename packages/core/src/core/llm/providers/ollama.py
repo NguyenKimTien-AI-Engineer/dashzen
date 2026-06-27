@@ -280,7 +280,11 @@ class OllamaProvider:
                         yield delta
                     return
                 last_exc = exc
-                if yielded_any or exc.response.status_code not in _RETRYABLE_STATUS or attempt >= _MAX_RETRIES - 1:
+                if (
+                    yielded_any
+                    or exc.response.status_code not in _RETRYABLE_STATUS
+                    or attempt >= _MAX_RETRIES - 1
+                ):
                     raise
                 await asyncio.sleep(2**attempt)
         if last_exc:

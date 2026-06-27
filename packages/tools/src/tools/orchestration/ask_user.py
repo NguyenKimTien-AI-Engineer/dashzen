@@ -8,7 +8,8 @@ DEFINITION = ToolDefinition(
     name="ask_user",
     description=(
         "Send a question to the user and wait for their reply. "
-        "Use only when a critical fact is missing that cannot be inferred — one focused question per call. "
+        "Use only when a critical fact is missing that cannot be inferred — "
+        "one focused question per call. "
         "Do not use for optional clarifications or details that can be reasonably assumed."
     ),
     parameters={

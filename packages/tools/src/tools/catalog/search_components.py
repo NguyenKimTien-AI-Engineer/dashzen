@@ -21,7 +21,8 @@ DEFINITION = ToolDefinition(
                 "type": "string",
                 "description": (
                     "Widget type or keyword to search for "
-                    "(e.g. 'kpi', 'barChart', 'lineChart', 'pieChart', 'table', 'gauge', 'filterBar')"
+                    "(e.g. 'kpi', 'barChart', 'lineChart', 'pieChart', "
+                    "'table', 'gauge', 'filterBar')"
                 ),
             },
         },

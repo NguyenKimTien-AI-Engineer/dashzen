@@ -9,13 +9,17 @@ DEFINITION = ToolDefinition(
     name="write_file",
     description=(
         "Create or fully overwrite a workspace file with the given content. "
-        "Use this once to produce a new artifact file (spec.md, bindings.md, layout.md, dashboard.html). "
+        "Use this once to produce a new artifact file "
+        "(spec.md, bindings.md, layout.md, dashboard.html). "
         "For targeted changes to an existing file, use edit_file instead."
     ),
     parameters={
         "type": "object",
         "properties": {
-            "path": {"type": "string", "description": "File name (e.g. spec.md). No path separators."},
+            "path": {
+                "type": "string",
+                "description": "File name (e.g. spec.md). No path separators.",
+            },
             "content": {"type": "string", "description": "Complete file content as a string."},
         },
         "required": ["path", "content"],

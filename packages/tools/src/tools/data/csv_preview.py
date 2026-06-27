@@ -17,8 +17,10 @@ _MAX_ROWS = 20
 DEFINITION = ToolDefinition(
     name="csv_preview",
     description=(
-        "Preview a CSV file from the workspace — returns column names, inferred types, and up to 20 sample rows. "
-        "Use this to explore what data a user uploaded before deciding how to bind it to dashboard widgets."
+        "Preview a CSV file from the workspace — returns column names, inferred types, "
+        "and up to 20 sample rows. "
+        "Use this to explore what data a user uploaded before deciding how to bind it "
+        "to dashboard widgets."
     ),
     parameters={
         "type": "object",

@@ -348,12 +348,20 @@ async def main_loop(
                 await ctx.db.commit()
                 emit_logged(TaskMetaEvent(title=title))
 
-        _emit_run_metrics(status="success", iterations=_iteration_count, token_total=_total_prompt_tokens)
+        _emit_run_metrics(
+            status="success",
+            iterations=_iteration_count,
+            token_total=_total_prompt_tokens,
+        )
         emit_logged(StreamDoneEvent())
 
     except Exception as exc:
         log.exception("main_loop_error", error=str(exc))
-        _emit_run_metrics(status="error", iterations=_iteration_count, token_total=_total_prompt_tokens)
+        _emit_run_metrics(
+            status="error",
+            iterations=_iteration_count,
+            token_total=_total_prompt_tokens,
+        )
         message = format_llm_error(exc)
         err_event = StreamErrorEvent(message=message)
         emit_logged(err_event)
