@@ -31,7 +31,9 @@ services:
       - key: COOKIE_SECURE
         value: "true"
       - key: COOKIE_SAMESITE
-        value: none
+        value: lax
+      - key: REFRESH_COOKIE_PATH
+        value: /api/v1/auth
       - key: RATE_LIMIT_ENABLED
         value: "true"
       - key: AVATAR_STORAGE_DIR
