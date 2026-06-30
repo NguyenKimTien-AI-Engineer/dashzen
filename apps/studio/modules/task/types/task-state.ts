@@ -13,8 +13,14 @@ export type DisplayMessage = {
   userFeedback?: "up" | "down" | null;
 };
 
+export type TurnUsage = {
+  inputTokens: number;
+  outputTokens: number;
+};
+
 export type StreamTurn = {
   optimisticUserId: string;
+  optimisticAssistantId: string;
   userContent: string;
   startedAt: number;
 };
@@ -75,6 +81,7 @@ export type TaskState = {
   error: StreamErrorState | null;
   lastUserMessage: string | null;
   pendingAsk: PendingAsk | null;
+  turnUsage: TurnUsage | null;
 };
 
 export const initialTaskState = (taskId: string): TaskState => ({
@@ -93,4 +100,5 @@ export const initialTaskState = (taskId: string): TaskState => ({
   error: null,
   lastUserMessage: null,
   pendingAsk: null,
+  turnUsage: null,
 });

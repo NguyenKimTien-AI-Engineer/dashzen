@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useChatDisplayMessages } from "@/modules/task/hooks/useChatDisplayMessages";
 import { useMessageActions } from "@/modules/task/hooks/useMessageActions";
@@ -41,16 +40,24 @@ export function ChatMessageList({ taskId, onEditUserMessage }: ChatMessageListPr
     toolCalls,
     agentBlocks,
     thinkingPanelCollapsed,
+    turnUsage,
+    streamTurn,
     taskMeta,
     artifacts,
     currentTurnArtifactIds,
-    streamError,
     isStreaming,
-    retry,
-    clearError,
     toggleThinkingPanel,
   } = useTask();
   const messages = useChatDisplayMessages(taskId);
+
+  const optimisticAssistantPatched = useMemo(() => {
+    if (!streamTurn) return false;
+    return messages.some(
+      (message) =>
+        message.id === streamTurn.optimisticAssistantId &&
+        Boolean(message.activityLog && activityLogHasContent(message.activityLog)),
+    );
+  }, [messages, streamTurn]);
 
   const {
     feedbackByMessage,
@@ -87,8 +94,14 @@ export function ChatMessageList({ taskId, onEditUserMessage }: ChatMessageListPr
         toolCalls,
         agentBlocks,
         taskMeta.title ?? task?.title,
+        turnUsage
+          ? {
+              input_tokens: turnUsage.inputTokens,
+              output_tokens: turnUsage.outputTokens,
+            }
+          : null,
       ),
-    [thinkingText, toolCalls, agentBlocks, taskMeta.title, task?.title],
+    [thinkingText, toolCalls, agentBlocks, taskMeta.title, task?.title, turnUsage],
   );
 
   const displayItems = useMemo(
@@ -97,7 +110,7 @@ export function ChatMessageList({ taskId, onEditUserMessage }: ChatMessageListPr
   );
 
   const showLiveThinking =
-    isStreaming && activityLogHasContent(liveActivityLog);
+    isStreaming && activityLogHasContent(liveActivityLog) && !optimisticAssistantPatched;
 
   const hasRunningAgents = Array.from(agentBlocks.values()).some(
     (block) => block.status === "running",
@@ -182,7 +195,18 @@ export function ChatMessageList({ taskId, onEditUserMessage }: ChatMessageListPr
           return (
             <div key={item.message.id}>
               {activityLog ? (
-                <ThinkingPanel activityLog={activityLog} defaultCollapsed />
+                <ThinkingPanel
+                  activityLog={activityLog}
+                  usage={
+                    activityLog.usage
+                      ? {
+                          inputTokens: activityLog.usage.input_tokens,
+                          outputTokens: activityLog.usage.output_tokens,
+                        }
+                      : null
+                  }
+                  defaultCollapsed
+                />
               ) : null}
               {item.content.trim() ? (
                 <ChatMessage message={assistantMessage} showActions={false} />
@@ -211,6 +235,7 @@ export function ChatMessageList({ taskId, onEditUserMessage }: ChatMessageListPr
         {showLiveThinking ? (
           <ThinkingPanel
             activityLog={liveActivityLog}
+            usage={turnUsage}
             isActive={hasRunningAgents || Boolean(thinkingText.trim())}
             collapsed={thinkingPanelCollapsed}
             onToggle={toggleThinkingPanel}
@@ -227,26 +252,12 @@ export function ChatMessageList({ taskId, onEditUserMessage }: ChatMessageListPr
 
         {isStreaming && !streamingText && !showLiveThinking && <TypingIndicator />}
 
-        {streamingText && (
+        {isStreaming && streamingText && (
           <ChatMessage
             role="assistant"
             content={streamingText}
-            streaming={isStreaming && !hasRunningAgents}
+            streaming={!hasRunningAgents}
           />
-        )}
-
-        {streamError && streamError.kind !== "still_processing" && (
-          <div className="my-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-            <p className="text-sm text-destructive">{streamError.message}</p>
-            <div className="mt-3 flex gap-2">
-              <Button size="sm" variant="outline" onClick={retry}>
-                Retry
-              </Button>
-              <Button size="sm" variant="ghost" onClick={clearError}>
-                Dismiss
-              </Button>
-            </div>
-          </div>
         )}
       </div>
 

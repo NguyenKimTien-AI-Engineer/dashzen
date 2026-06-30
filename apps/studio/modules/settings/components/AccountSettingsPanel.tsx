@@ -11,6 +11,7 @@ import { DeleteAccountDialog } from "@/modules/auth/components/DeleteAccountDial
 import { useLogout } from "@/modules/auth/hooks/useAuth";
 import { useMe } from "@/modules/auth/hooks/useMe";
 import { useSettingsPanelStore } from "@/lib/stores/settingsPanelStore";
+import { formatTokens } from "@/modules/task/lib/format-tokens";
 
 export function AccountSettingsPanel() {
   const router = useRouter();
@@ -62,6 +63,39 @@ export function AccountSettingsPanel() {
               </>
             )}
           </div>
+        </div>
+
+        <div className="space-y-3 border-t pt-6">
+          <div>
+            <p className="text-sm font-medium">Token usage</p>
+            <p className="text-sm text-muted-foreground">
+              Total tokens used since you joined
+              {user.created_at
+                ? ` ${new Date(user.created_at).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}`
+                : ""}
+              .
+            </p>
+          </div>
+          <dl className="grid max-w-sm grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <dt className="text-muted-foreground">Input</dt>
+            <dd className="text-right font-mono tabular-nums">
+              {formatTokens(user.usage?.input_tokens ?? 0)}
+            </dd>
+            <dt className="text-muted-foreground">Output</dt>
+            <dd className="text-right font-mono tabular-nums">
+              {formatTokens(user.usage?.output_tokens ?? 0)}
+            </dd>
+            <dt className="font-medium">Total</dt>
+            <dd className="text-right font-mono tabular-nums font-medium">
+              {formatTokens(
+                (user.usage?.input_tokens ?? 0) + (user.usage?.output_tokens ?? 0),
+              )}
+            </dd>
+          </dl>
         </div>
 
         <div className="flex items-center justify-between gap-4 border-t pt-6">

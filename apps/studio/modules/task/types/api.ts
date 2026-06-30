@@ -15,6 +15,8 @@ export type Message = {
   content: string;
   parent_id: string | null;
   prompt_tokens: number | null;
+  output_tokens?: number | null;
+  turn_id?: string | null;
   created_at: string;
   activity_log?: import("./activity-log").ActivityLogPayload;
   user_feedback?: "up" | "down" | null;

@@ -39,6 +39,7 @@ export type TaskAction =
       summary: string;
     }
   | { type: "TOGGLE_THINKING_PANEL" }
+  | { type: "USAGE_UPDATE"; inputTokens: number; outputTokens: number }
   | {
       type: "STREAM_ARTIFACT";
       id: string;
@@ -56,7 +57,11 @@ export type TaskAction =
   | { type: "RESET" };
 
 function optimisticUserId(): string {
-  return `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  return `optimistic-user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function optimisticAssistantId(): string {
+  return `optimistic-assistant-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
 export function taskReducer(state: TaskState, action: TaskAction): TaskState {
@@ -68,6 +73,7 @@ export function taskReducer(state: TaskState, action: TaskAction): TaskState {
         streamKey: state.streamKey + 1,
         streamTurn: {
           optimisticUserId: optimisticUserId(),
+          optimisticAssistantId: optimisticAssistantId(),
           userContent: action.content,
           startedAt: Date.now(),
         },
@@ -76,6 +82,7 @@ export function taskReducer(state: TaskState, action: TaskAction): TaskState {
         toolCalls: new Map(),
         agentBlocks: new Map(),
         thinkingPanelCollapsed: true,
+        turnUsage: null,
         error: null,
         lastUserMessage: action.content,
         currentTurnArtifactIds: [],
@@ -92,6 +99,7 @@ export function taskReducer(state: TaskState, action: TaskAction): TaskState {
         agentBlocks: new Map(),
         error: null,
         thinkingPanelCollapsed: true,
+        turnUsage: null,
         currentTurnArtifactIds: [],
       };
 
@@ -208,6 +216,15 @@ export function taskReducer(state: TaskState, action: TaskAction): TaskState {
         },
       };
 
+    case "USAGE_UPDATE":
+      return {
+        ...state,
+        turnUsage: {
+          inputTokens: action.inputTokens,
+          outputTokens: action.outputTokens,
+        },
+      };
+
     case "STREAM_END":
       return {
         ...state,
@@ -219,12 +236,14 @@ export function taskReducer(state: TaskState, action: TaskAction): TaskState {
         thinkingPanelCollapsed: true,
         pendingAsk: null,
         currentTurnArtifactIds: [],
+        turnUsage: null,
       };
 
     case "STREAM_ERROR":
       return {
         ...state,
         streamStatus: "error",
+        streamTurn: null,
         streamingText: "",
         thinkingText: "",
         agentBlocks: finalizeRunningAgentBlocks(state.agentBlocks),
@@ -235,6 +254,7 @@ export function taskReducer(state: TaskState, action: TaskAction): TaskState {
       return {
         ...state,
         streamStatus: action.error?.kind === "still_processing" ? "idle" : "error",
+        streamTurn: action.error?.kind === "still_processing" ? state.streamTurn : null,
         streamingText: action.error?.kind === "still_processing" ? state.streamingText : "",
         thinkingText: action.error?.kind === "still_processing" ? state.thinkingText : "",
         agentBlocks:
@@ -271,6 +291,7 @@ export function taskReducer(state: TaskState, action: TaskAction): TaskState {
         taskMeta: {},
         error: null,
         lastUserMessage: null,
+        turnUsage: null,
       };
 
     default:

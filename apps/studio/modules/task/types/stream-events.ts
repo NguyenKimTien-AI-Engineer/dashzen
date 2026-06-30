@@ -59,9 +59,19 @@ export type TaskMetaEvent = {
   task_type?: string;
 };
 export type HeartbeatEvent = { type: "heartbeat" };
+export type UsageUpdateEvent = {
+  type: "usage_update";
+  turn_input_tokens: number;
+  turn_output_tokens: number;
+  delta_input: number;
+  delta_output: number;
+};
+
 export type StreamDoneEvent = {
   type: "stream_done";
   partial_message_id?: string | null;
+  turn_input_tokens?: number | null;
+  turn_output_tokens?: number | null;
 };
 export type StreamErrorEvent = { type: "stream_error"; message: string };
 
@@ -80,6 +90,7 @@ export type StreamEvent =
   | FileArtifactEvent
   | TaskMetaEvent
   | HeartbeatEvent
+  | UsageUpdateEvent
   | StreamDoneEvent
   | StreamErrorEvent;
 
@@ -98,6 +109,7 @@ const KNOWN_TYPES = new Set([
   "file_artifact",
   "task_meta",
   "heartbeat",
+  "usage_update",
   "stream_done",
   "stream_error",
 ]);

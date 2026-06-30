@@ -1,3 +1,8 @@
+export type ActivityLogUsage = {
+  input_tokens: number;
+  output_tokens: number;
+};
+
 export type ActivityStepPayload = {
   id: string;
   kind: "think" | "tool";
@@ -17,6 +22,7 @@ export type ActivityLogPayload = {
   type: "activity_log";
   version: number;
   header_title: string;
+  usage?: ActivityLogUsage;
   sections: ActivitySectionPayload[];
 };
 

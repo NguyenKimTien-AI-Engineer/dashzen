@@ -9,6 +9,10 @@ export type User = {
   has_password: boolean;
   auth_providers: AuthProvider[];
   created_at: string | null;
+  usage?: {
+    input_tokens: number;
+    output_tokens: number;
+  };
 };
 
 export type RegisterResponse = {

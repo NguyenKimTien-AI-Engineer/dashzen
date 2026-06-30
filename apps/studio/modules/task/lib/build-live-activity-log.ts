@@ -90,6 +90,7 @@ export function buildLiveActivityLog(
   mainToolCalls: Map<string, ToolCallState>,
   agentBlocks: Map<string, AgentBlockState>,
   headerTitle?: string | null,
+  usage?: { input_tokens: number; output_tokens: number } | null,
 ): ActivityLogPayload {
   const sections: ActivitySectionPayload[] = [];
 
@@ -137,11 +138,17 @@ export function buildLiveActivityLog(
     type: "activity_log",
     version: 1,
     header_title: headerTitle?.trim() ?? "",
+    usage:
+      usage && (usage.input_tokens > 0 || usage.output_tokens > 0)
+        ? usage
+        : undefined,
     sections: collapseActivitySectionsByTitle(sections),
   };
 }
 
 export function activityLogHasContent(log: ActivityLogPayload | null | undefined): boolean {
   if (!log) return false;
-  return log.sections.some((section) => section.steps.length > 0);
+  if (log.sections.some((section) => section.steps.length > 0)) return true;
+  if (log.header_title?.trim()) return true;
+  return false;
 }

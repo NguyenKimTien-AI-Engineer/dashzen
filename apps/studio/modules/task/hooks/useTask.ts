@@ -15,12 +15,14 @@ export function useTask() {
     toolCalls: state.toolCalls,
     agentBlocks: state.agentBlocks,
     thinkingPanelCollapsed: state.thinkingPanelCollapsed,
+    turnUsage: state.turnUsage,
     artifacts: state.artifacts,
     currentTurnArtifactIds: state.currentTurnArtifactIds,
     taskMeta: state.taskMeta,
     streamError: state.error,
     streamStatus: state.streamStatus,
     pendingAsk: state.pendingAsk,
+    streamTurn: state.streamTurn,
     isStreaming,
   };
 }

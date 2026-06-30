@@ -60,6 +60,12 @@ export function mapStreamEventToAction(event: StreamEvent): TaskAction | null {
       };
     case "main_ask":
       return { type: "ASK_USER", callId: event.call_id, question: event.question };
+    case "usage_update":
+      return {
+        type: "USAGE_UPDATE",
+        inputTokens: event.turn_input_tokens,
+        outputTokens: event.turn_output_tokens,
+      };
     case "stream_done":
       return { type: "STREAM_END" };
     case "stream_error":

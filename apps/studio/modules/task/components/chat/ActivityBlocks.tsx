@@ -10,6 +10,7 @@ import type {
   ActivityStepPayload,
 } from "@/modules/task/types/activity-log";
 import { activityLogHasContent, collapseActivitySectionsByTitle } from "@/modules/task/lib/build-live-activity-log";
+import { formatUsagePair } from "@/modules/task/lib/format-tokens";
 import { MarkdownContent } from "./MarkdownContent";
 
 const TIMELINE_ICON_PX = 20;
@@ -25,15 +26,24 @@ function truncate(text: string, max: number): string {
   return `${trimmed.slice(0, max)}…`;
 }
 
-function getPreview(log: ActivityLogPayload): string | null {
+function getPreviewMeta(
+  log: ActivityLogPayload,
+): { text: string; kind: "think" | "tool" } | null {
   for (let i = log.sections.length - 1; i >= 0; i -= 1) {
     const section = log.sections[i];
     const lastStep = section.steps[section.steps.length - 1];
     if (!lastStep) continue;
-    if (lastStep.kind === "tool" && lastStep.label) return lastStep.label;
+    if (lastStep.kind === "tool" && lastStep.label) {
+      return { text: lastStep.label, kind: "tool" };
+    }
     if (lastStep.detail) {
       const line = lastStep.detail.split("\n").find((l) => l.trim())?.trim();
-      if (line) return line.length > 120 ? `${line.slice(0, 120)}…` : line;
+      if (line) {
+        return {
+          text: line.length > 120 ? `${line.slice(0, 120)}…` : line,
+          kind: "think",
+        };
+      }
     }
   }
   return null;
@@ -116,14 +126,25 @@ function dedupeThinkSteps(steps: ActivityStepPayload[]): ActivityStepPayload[] {
   });
 }
 
-function SectionTimeline({ section }: { section: ActivitySectionPayload }) {
+function SectionTimeline({
+  section,
+  isActive = false,
+}: {
+  section: ActivitySectionPayload;
+  isActive?: boolean;
+}) {
   const visibleSteps = dedupeThinkSteps(
     section.steps.filter(
       (step) => step.kind === "tool" || step.detail.trim().length > 0,
     ),
   );
-  if (visibleSteps.length === 0 && section.status === "running") {
-    return <p className="pl-6 text-sm text-muted-foreground/70">Working…</p>;
+  const sectionDone = section.status !== "running" || !isActive;
+
+  if (visibleSteps.length === 0) {
+    if (section.status === "running" && isActive) {
+      return <p className="pl-6 text-sm text-muted-foreground/70">Working…</p>;
+    }
+    return null;
   }
 
   return (
@@ -134,7 +155,7 @@ function SectionTimeline({ section }: { section: ActivitySectionPayload }) {
       {visibleSteps.map((step) => (
         <TimelineStepRow key={step.id} step={step} />
       ))}
-      {section.status === "done" ? <DoneRow /> : null}
+      {sectionDone ? <DoneRow /> : null}
       {section.status === "error" ? (
         <p className="pl-6 text-sm text-destructive">Failed</p>
       ) : null}
@@ -144,6 +165,7 @@ function SectionTimeline({ section }: { section: ActivitySectionPayload }) {
 
 type ThinkingPanelProps = {
   activityLog: ActivityLogPayload;
+  usage?: { inputTokens: number; outputTokens: number } | null;
   isActive?: boolean;
   /** Controlled collapse for live stream panel */
   collapsed?: boolean;
@@ -154,6 +176,7 @@ type ThinkingPanelProps = {
 
 export function ThinkingPanel({
   activityLog,
+  usage,
   isActive = false,
   collapsed: controlledCollapsed,
   onToggle,
@@ -167,9 +190,20 @@ export function ThinkingPanel({
     return null;
   }
 
-  const headerTitle = activityLog.header_title.trim()
-    || (isActive ? cyclingLabel : "Thinking");
-  const preview = collapsed ? getPreview(activityLog) : null;
+  const headerTitle = (() => {
+    const stored = activityLog.header_title.trim();
+    if (stored.length >= 3) return stored;
+    return isActive ? cyclingLabel : "Thinking";
+  })();
+  const resolvedUsage =
+    usage ??
+    (activityLog.usage
+      ? {
+          inputTokens: activityLog.usage.input_tokens,
+          outputTokens: activityLog.usage.output_tokens,
+        }
+      : null);
+  const previewMeta = collapsed ? getPreviewMeta(activityLog) : null;
   const sections = collapseActivitySectionsByTitle(activityLog.sections);
 
   const handleToggle = () => {
@@ -191,16 +225,33 @@ export function ThinkingPanel({
         <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground/60" aria-hidden />
         <span
           key={isActive && !activityLog.header_title ? cyclingLabel : headerTitle}
-          className="line-clamp-2 font-medium capitalize text-foreground/75"
+          className="line-clamp-2 flex-1 font-medium text-foreground/75"
         >
           {headerTitle}
         </span>
+        {resolvedUsage ? (
+          <span
+            className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground/70"
+            aria-label={`Token usage: ${resolvedUsage.inputTokens} input, ${resolvedUsage.outputTokens} output`}
+          >
+            {formatUsagePair(resolvedUsage.inputTokens, resolvedUsage.outputTokens)}
+          </span>
+        ) : null}
       </button>
 
-      {collapsed && preview ? (
+      {collapsed && previewMeta ? (
         <div className="mt-1.5 flex items-start gap-2 pl-6 text-sm text-muted-foreground/75">
-          <FileText className="mt-0.5 size-3.5 shrink-0" strokeWidth={2} aria-hidden />
-          <span className="line-clamp-2 leading-relaxed">{preview}</span>
+          {previewMeta.kind === "think" ? (
+            <Clock className="mt-0.5 size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+          ) : (
+            <FileText className="mt-0.5 size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+          )}
+          <div className="line-clamp-3 min-w-0 flex-1 [&_p]:mb-0 [&_p]:leading-relaxed [&_strong]:font-semibold">
+            <MarkdownContent
+              content={previewMeta.text}
+              className="text-sm text-muted-foreground/75"
+            />
+          </div>
         </div>
       ) : null}
 
@@ -220,7 +271,7 @@ export function ThinkingPanel({
             />
             <div className="space-y-6">
               {sections.map((section) => (
-                <SectionTimeline key={section.id} section={section} />
+                <SectionTimeline key={section.id} section={section} isActive={isActive} />
               ))}
             </div>
           </div>
