@@ -5,7 +5,7 @@ Production deploy uses **platform Git integration**, not this workflow alone.
 | Layer | Service | Config in repo |
 |-------|---------|----------------|
 | Studio | [Vercel](https://vercel.com) | `apps/studio/vercel.json`, `pages/api/[...path].ts` |
-| API | [Render](https://render.com) | `Dockerfile`, `render.yaml` |
+| API | [Render](https://render.com) | `Dockerfile` (env in Render dashboard) |
 | Database | [Neon](https://neon.tech) | `DATABASE_URL` in Render env |
 | LLM | Gemini / OpenRouter | API env vars |
 | CD smoke | GitHub Actions | `.github/workflows/cd.yml` |
@@ -13,7 +13,7 @@ Production deploy uses **platform Git integration**, not this workflow alone.
 ## Quick checklist
 
 1. **Neon** — create project → connection string with `postgresql+asyncpg://` and `?sslmode=require`
-2. **Render** — New Blueprint → select repo → set env from `.env.example`
+2. **Render** — New Web Service → Docker → set env from `.env.production.example`
 3. **Vercel** — Import repo → Root Directory: `apps/studio` → env below
 4. **Merge to `main`** — Vercel + Render auto-deploy
 

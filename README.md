@@ -65,7 +65,7 @@ GitHub Actions workflows (`.github/workflows/`):
 
 Path filters skip unchanged areas on PRs (Python vs Studio). Push to `main` always runs all jobs.
 
-**Deploy (PaaS Option 3):** Vercel (`apps/studio`) + Render (API via `Dockerfile` + `render.yaml`) + Neon (Postgres). LLM: Gemini or OpenRouter — not Ollama on free PaaS.
+**Deploy (PaaS Option 3):** Vercel (`apps/studio`) + Render (API via `Dockerfile`) + Neon (Postgres). LLM: Gemini or OpenRouter — not Ollama on free PaaS.
 
 See **[infra/deploy/paas.md](infra/deploy/paas.md)** for first-time setup and env vars (`.env.production.example`).
 
