@@ -23,6 +23,8 @@ def resolve_thinking_enabled(
         return request_value
     if provider == "ollama":
         return ollama_thinking_enabled
+    if provider == "gemini":
+        return True
     return False
 
 

@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from core.email.testing import InMemoryEmailBackend
-from core.llm.types import LLMDelta
+from core.llm.types import LLMChatResult, LLMDelta
 from httpx import AsyncClient
 
 from tests.auth_helpers import create_test_user_and_login
@@ -26,8 +26,8 @@ class _MockLLMClient:
         yield LLMDelta(kind="text_delta", text="world")
         yield LLMDelta(kind="done", prompt_tokens=10, output_tokens=5)
 
-    async def chat(self, *args, **kwargs) -> str:  # type: ignore[no-untyped-def]
-        return "title"
+    async def chat(self, *args, **kwargs) -> LLMChatResult:  # type: ignore[no-untyped-def]
+        return LLMChatResult(content="title")
 
 
 def _parse_sse_events(body: str) -> list[dict]:

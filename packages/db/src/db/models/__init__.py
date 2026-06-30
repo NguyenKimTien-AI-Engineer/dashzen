@@ -1,6 +1,7 @@
 from db.models.agent_run import AgentRun
 from db.models.email_verification import EmailVerificationCode
 from db.models.file import File
+from db.models.llm_usage_event import LlmUsageEvent
 from db.models.message import Message
 from db.models.message_action import MessageAction
 from db.models.oauth_account import OAuthAccount
@@ -10,6 +11,7 @@ from db.models.task import Task
 from db.models.user import User
 
 __all__ = [
+    "LlmUsageEvent",
     "OAuthAccount",
     "AgentRun",
     "EmailVerificationCode",

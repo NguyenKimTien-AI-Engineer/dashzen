@@ -27,6 +27,25 @@ def format_llm_error(exc: BaseException) -> str:
             except Exception:
                 pass
             return message
+        if 400 <= exc.response.status_code < 500:
+            provider_msg: str | None = None
+            try:
+                body = exc.response.json()
+                err = body.get("error")
+                if isinstance(err, dict):
+                    msg = err.get("message")
+                    if isinstance(msg, str) and msg.strip():
+                        provider_msg = msg.strip()
+                if provider_msg is None:
+                    detail = body.get("detail")
+                    if isinstance(detail, str) and detail.strip():
+                        provider_msg = detail.strip()
+            except Exception:
+                text = exc.response.text.strip()
+                if text:
+                    provider_msg = text[:300]
+            if provider_msg:
+                return provider_msg
         if exc.response.status_code >= 500:
             message = (
                 f"LLM provider ({settings.llm_provider}) returned {exc.response.status_code}. "

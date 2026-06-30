@@ -13,7 +13,7 @@ from core.llm.thinking import (
     is_ollama_think_rejection,
     resolve_ollama_think_param,
 )
-from core.llm.types import LLMDelta, LLMMessage, ToolDefinition
+from core.llm.types import LLMChatResult, LLMDelta, LLMMessage, LLMUsage, ToolDefinition
 
 log = logging.getLogger(__name__)
 
@@ -172,7 +172,7 @@ class OllamaProvider:
         *,
         max_tokens: int = 4096,
         temperature: float = 0.3,
-    ) -> str:
+    ) -> LLMChatResult:
         payload = {
             "model": self._model,
             "messages": _messages_to_ollama(messages),
@@ -185,7 +185,13 @@ class OllamaProvider:
         async with httpx.AsyncClient(timeout=120) as client:
             resp = await self._post_with_retry(client, payload)
             data = resp.json()
-            return data.get("message", {}).get("content", "")
+            return LLMChatResult(
+                content=data.get("message", {}).get("content", ""),
+                usage=LLMUsage(
+                    input_tokens=data.get("prompt_eval_count"),
+                    output_tokens=data.get("eval_count"),
+                ),
+            )
 
     async def _stream_once(
         self,

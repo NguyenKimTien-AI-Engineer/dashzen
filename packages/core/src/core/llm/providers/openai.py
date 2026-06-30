@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator
 
 import httpx
 
-from core.llm.types import LLMDelta, LLMMessage, ToolDefinition
+from core.llm.types import LLMChatResult, LLMDelta, LLMMessage, LLMUsage, ToolDefinition
 
 
 def _build_tools(tools: list[ToolDefinition]) -> list[dict]:  # type: ignore[type-arg]
@@ -65,7 +65,7 @@ class OpenAIProvider:
         *,
         max_tokens: int = 4096,
         temperature: float = 0.3,
-    ) -> str:
+    ) -> LLMChatResult:
         async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
                 "https://api.openai.com/v1/chat/completions",
@@ -79,7 +79,14 @@ class OpenAIProvider:
             )
             resp.raise_for_status()
             data = resp.json()
-            return data["choices"][0]["message"]["content"] or ""
+            usage = data.get("usage") or {}
+            return LLMChatResult(
+                content=data["choices"][0]["message"]["content"] or "",
+                usage=LLMUsage(
+                    input_tokens=usage.get("prompt_tokens"),
+                    output_tokens=usage.get("completion_tokens"),
+                ),
+            )
 
     async def stream(
         self,

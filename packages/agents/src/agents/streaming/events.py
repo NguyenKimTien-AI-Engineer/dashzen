@@ -96,9 +96,19 @@ class HeartbeatEvent(BaseModel):
     type: Literal["heartbeat"] = "heartbeat"
 
 
+class UsageUpdateEvent(BaseModel):
+    type: Literal["usage_update"] = "usage_update"
+    turn_input_tokens: int
+    turn_output_tokens: int
+    delta_input: int
+    delta_output: int
+
+
 class StreamDoneEvent(BaseModel):
     type: Literal["stream_done"] = "stream_done"
     partial_message_id: str | None = None
+    turn_input_tokens: int | None = None
+    turn_output_tokens: int | None = None
 
 
 class StreamErrorEvent(BaseModel):
@@ -121,6 +131,7 @@ StreamEvent = Annotated[
     | FileArtifactEvent
     | TaskMetaEvent
     | HeartbeatEvent
+    | UsageUpdateEvent
     | StreamDoneEvent
     | StreamErrorEvent,
     Field(discriminator="type"),

@@ -16,6 +16,29 @@ from agents.streaming.events import (
 )
 
 
+def test_build_drops_empty_orchestrator_without_steps() -> None:
+    acc = ActivityLogAccumulator()
+    acc.set_usage(2_200, 57)
+
+    built = acc.build()
+    assert not any(section.id == "orchestrator" for section in built.sections)
+    assert built.usage_input_tokens == 2_200
+
+
+def test_activity_log_persists_usage() -> None:
+    acc = ActivityLogAccumulator()
+    acc.begin_orchestrator_iteration(0)
+    acc.record(MainThinkEvent(delta="Thinking"))
+    acc.set_usage(12_400, 1_850)
+
+    encoded = encode_activity_log(acc.build())
+    parsed = parse_activity_log(encoded)
+    assert parsed is not None
+    assert parsed.usage_input_tokens == 12_400
+    assert parsed.usage_output_tokens == 1_850
+    assert '"usage"' in encoded
+
+
 def test_activity_log_roundtrip() -> None:
     acc = ActivityLogAccumulator()
     acc.record(MainToolEvent(call_id="t1", name="set_memory", args={}))

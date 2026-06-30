@@ -11,7 +11,7 @@ from core.llm.types import LLMMessage
 from db.services.message_service import (
     create_message,
     find_orphan_user_message,
-    get_messages,
+    get_tree_path,
     update_message_thinking,
 )
 from db.services.task_service import get_task
@@ -31,6 +31,7 @@ from agents.orchestration.exec_parallel import execute_tool_calls
 from agents.orchestration.llm_errors import format_llm_error
 from agents.orchestration.runtime import RuntimeContext
 from agents.orchestration.spawn import spawn_agent
+from agents.orchestration.thinking_sanitize import sanitize_thinking_for_display
 from agents.streaming.events import (
     MainResultEvent,
     MainTextEvent,
@@ -43,6 +44,8 @@ from agents.streaming.events import (
 from agents.tools.loop_detection import LoopDetector
 from agents.tools.partition import ToolCall
 from agents.tools.read_cache import ReadCache
+from agents.usage.accumulator import UsageAccumulator
+from agents.usage.recorder import record_turn_usage
 
 log = structlog.get_logger()
 
@@ -90,6 +93,8 @@ async def main_loop(
     assistant_msg_id: uuid.UUID | None = None
     _iteration_count = 0
     _total_prompt_tokens = 0
+    turn_id = uuid.uuid4()
+    turn_usage = UsageAccumulator()
 
     def emit_logged(event: object) -> None:
         activity_acc.record(event)
@@ -109,14 +114,23 @@ async def main_loop(
             )
             await ctx.db.commit()
 
-        history = await get_messages(ctx.db, ctx.task_id)
-        messages: list[LLMMessage] = build_history(history)
+        history_msgs = await get_tree_path(ctx.db, ctx.task_id, user_msg.id)
+        messages: list[LLMMessage] = build_history(history_msgs)
 
         system_prompt = load_system_prompt("main")
 
-        turn_number = len([m for m in history if m.role == "user"])
+        turn_number = len([m for m in history_msgs if m.role == "user"])
         title_task = asyncio.create_task(
-            try_set_title(ctx.db, ctx.task_id, user_message, turn_number)
+            try_set_title(
+                ctx.db,
+                ctx.task_id,
+                user_message,
+                turn_number,
+                user_id=ctx.user_id,
+                turn_id=turn_id,
+                turn_usage=turn_usage,
+                emit=emit_logged,
+            )
         )
 
         tool_ctx = ToolContext(
@@ -129,6 +143,8 @@ async def main_loop(
             mode=ctx.mode,
             thinking_enabled=ctx.thinking_enabled,
             abort_signal=ctx.abort_signal,
+            turn_id=turn_id,
+            turn_usage=turn_usage,
         )
 
         current_parent = user_msg.id
@@ -140,7 +156,8 @@ async def main_loop(
             if task_row and task_row.title:
                 activity_acc.set_header_title(task_row.title)
             built = activity_acc.build()
-            if not built.header_title and not built.sections:
+            has_steps = any(section.steps for section in built.sections)
+            if not built.header_title and not has_steps:
                 return
             await update_message_thinking(
                 ctx.db,
@@ -155,6 +172,9 @@ async def main_loop(
 
             activity_acc.begin_orchestrator_iteration(iteration)
 
+            raw_think_acc = ""
+            last_safe_emitted = ""
+
             messages, _ = await compact_if_over_budget(
                 messages,
                 ctx.db,
@@ -162,6 +182,10 @@ async def main_loop(
                 compaction_state,
                 leaf_id=current_parent,
                 parent_id=current_parent,
+                user_id=ctx.user_id,
+                turn_id=turn_id,
+                turn_usage=turn_usage,
+                emit=emit_logged,
             )
 
             memory_state = await read_memory(ctx.db, ctx.task_id, ctx.artifact_buffer)
@@ -182,6 +206,7 @@ async def main_loop(
             text_acc = ""
             tool_calls_raw: list[dict] = []  # type: ignore[type-arg]
             prompt_tokens: int | None = None
+            output_tokens: int | None = None
 
             async for delta in client.stream(
                 llm_payload,
@@ -194,8 +219,17 @@ async def main_loop(
                 if delta.kind == "text_delta" and delta.text:
                     text_acc += delta.text
                     emit_logged(MainTextEvent(delta=delta.text))
-                elif delta.kind == "thinking_delta" and delta.thinking:
-                    emit_logged(MainThinkEvent(delta=delta.thinking))
+                elif delta.kind == "thinking_delta":
+                    chunk = delta.thinking or delta.text or ""
+                    if not chunk:
+                        continue
+                    raw_think_acc += chunk
+                    safe_full = sanitize_thinking_for_display(raw_think_acc)
+                    if len(safe_full) > len(last_safe_emitted):
+                        new_part = safe_full[len(last_safe_emitted) :]
+                        last_safe_emitted = safe_full
+                        if new_part:
+                            emit_logged(MainThinkEvent(delta=new_part))
                 elif delta.kind == "tool_call":
                     try:
                         args = json.loads(delta.tool_args_json or "{}")
@@ -212,7 +246,21 @@ async def main_loop(
                     )
                 elif delta.kind == "done":
                     prompt_tokens = delta.prompt_tokens
+                    output_tokens = delta.output_tokens
                     break
+
+            if prompt_tokens or output_tokens:
+                await record_turn_usage(
+                    ctx.db,
+                    user_id=ctx.user_id,
+                    task_id=ctx.task_id,
+                    turn_id=turn_id,
+                    source="orchestrator",
+                    input_tokens=prompt_tokens,
+                    output_tokens=output_tokens,
+                    turn_usage=turn_usage,
+                    emit=emit_logged,
+                )
 
             if prompt_tokens:
                 _total_prompt_tokens += prompt_tokens
@@ -239,6 +287,8 @@ async def main_loop(
                 content=text_acc + (tool_calls_content or ""),
                 parent_id=current_parent,
                 prompt_tokens=prompt_tokens,
+                output_tokens=output_tokens,
+                turn_id=turn_id,
             )
             await ctx.db.commit()
             assistant_msg_id = asst_msg.id
@@ -332,6 +382,7 @@ async def main_loop(
                 )
             )
 
+        activity_acc.set_usage(turn_usage.input_tokens, turn_usage.output_tokens)
         await _persist_activity_log()
 
         await ctx.artifact_buffer.flush_and_remap(ctx.db, ctx.task_id, assistant_msg_id)
@@ -355,7 +406,12 @@ async def main_loop(
             iterations=_iteration_count,
             token_total=_total_prompt_tokens,
         )
-        emit_logged(StreamDoneEvent())
+        emit_logged(
+            StreamDoneEvent(
+                turn_input_tokens=turn_usage.input_tokens,
+                turn_output_tokens=turn_usage.output_tokens,
+            )
+        )
 
     except Exception as exc:
         log.exception("main_loop_error", error=str(exc))

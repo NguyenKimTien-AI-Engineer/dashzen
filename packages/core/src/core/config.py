@@ -8,7 +8,7 @@ AppEnv = Literal["development", "staging", "production"]
 CookieSameSite = Literal["lax", "strict", "none"]
 JwtAlgorithm = Literal["HS256", "RS256"]
 EmailBackendType = Literal["console", "smtp"]
-LLMProvider = Literal["ollama", "anthropic", "openai", "gemini", "openrouter"]
+LLMProvider = Literal["ollama", "anthropic", "openai", "gemini", "openrouter", "vilao"]
 
 
 class Settings(BaseSettings):
@@ -113,6 +113,9 @@ class Settings(BaseSettings):
     openrouter_model: str = "openrouter/free"
     openrouter_site_url: str = "http://localhost:3000"
     openrouter_app_name: str = "DashZen Studio"
+    vilao_api_key: str = ""
+    vilao_model: str = "dd/deepseek-v4-pro"
+    vilao_base_url: str = "https://api.vilao.ai/v1"
 
     redis_url: str = "redis://localhost:6379/0"
 

@@ -51,10 +51,16 @@ class ActivitySectionResponse(BaseModel):
     steps: list[ActivityStepResponse] = []
 
 
+class ActivityLogUsage(BaseModel):
+    input_tokens: int
+    output_tokens: int
+
+
 class ActivityLogResponse(BaseModel):
     type: Literal["activity_log"] = "activity_log"
     version: int = 1
     header_title: str = ""
+    usage: ActivityLogUsage | None = None
     sections: list[ActivitySectionResponse] = []
 
 
@@ -64,6 +70,8 @@ class MessageResponse(BaseModel):
     content: str
     parent_id: uuid.UUID | None
     prompt_tokens: int | None
+    output_tokens: int | None = None
+    turn_id: uuid.UUID | None = None
     created_at: datetime
     branch_info: BranchInfo | None = None
     activity_log: ActivityLogResponse | None = None

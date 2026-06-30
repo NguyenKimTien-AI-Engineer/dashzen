@@ -24,6 +24,8 @@ class ToolContext:
     current_call_id: str | None = None
     current_message_id: uuid.UUID | None = None
     # Orchestrator turn guards (one user message / main_loop run)
+    turn_id: uuid.UUID | None = None
+    turn_usage: Any = None  # UsageAccumulator — avoid circular import
     orchestrator_list_file_calls: int = 0
     orchestrator_spawn_attempted: set[str] = field(default_factory=set)
     # Sub-agent: one write_file per output path per spawn

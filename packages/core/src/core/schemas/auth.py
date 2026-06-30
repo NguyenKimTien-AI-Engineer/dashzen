@@ -46,6 +46,11 @@ class ResendVerificationRequest(BaseModel):
 AuthProvider = Literal["password", "google", "github"]
 
 
+class UsageSummary(BaseModel):
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+
 class UserResponse(BaseModel):
     id: UUID
     email: EmailStr
@@ -55,6 +60,7 @@ class UserResponse(BaseModel):
     has_password: bool = False
     auth_providers: list[AuthProvider] = Field(default_factory=list)
     created_at: datetime | None = None
+    usage: UsageSummary = Field(default_factory=UsageSummary)
 
     model_config = {"from_attributes": True}
 

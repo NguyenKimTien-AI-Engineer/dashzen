@@ -13,6 +13,7 @@ from core.llm.types import LLMMessage, ToolDefinition
 from tools.context import ToolContext
 
 from agents.orchestration.constants import SUBAGENT_MAX_TURNS, SUBAGENT_TIMEOUT_SEC
+from agents.orchestration.thinking_sanitize import sanitize_thinking_for_display
 from agents.streaming.events import (
     AgentResultEvent,
     AgentTextEvent,
@@ -21,6 +22,7 @@ from agents.streaming.events import (
 )
 from agents.tools.loop_detection import LoopDetector
 from agents.tools.partition import ToolCall
+from agents.usage.recorder import record_turn_usage
 
 log = structlog.get_logger()
 
@@ -99,6 +101,11 @@ async def run_agent_loop(
             all_messages = [LLMMessage(role="system", content=full_system), *messages]
             text_acc = ""
             tool_calls_raw: list[dict] = []  # type: ignore[type-arg]
+            prompt_tokens: int | None = None
+            output_tokens: int | None = None
+
+            raw_think_acc = ""
+            last_safe_emitted = ""
 
             async for delta in client.stream(
                 all_messages,
@@ -110,8 +117,17 @@ async def run_agent_loop(
                 if delta.kind == "text_delta" and delta.text:
                     text_acc += delta.text
                     emit(AgentTextEvent(call_id=parent_call_id, delta=delta.text))
-                elif delta.kind == "thinking_delta" and delta.thinking:
-                    emit(AgentThinkEvent(call_id=parent_call_id, delta=delta.thinking))
+                elif delta.kind == "thinking_delta":
+                    chunk = delta.thinking or delta.text or ""
+                    if not chunk:
+                        continue
+                    raw_think_acc += chunk
+                    safe_full = sanitize_thinking_for_display(raw_think_acc)
+                    if len(safe_full) > len(last_safe_emitted):
+                        new_part = safe_full[len(last_safe_emitted) :]
+                        last_safe_emitted = safe_full
+                        if new_part:
+                            emit(AgentThinkEvent(call_id=parent_call_id, delta=new_part))
                 elif delta.kind == "tool_call":
                     try:
                         args = json.loads(delta.tool_args_json or "{}")
@@ -132,7 +148,23 @@ async def run_agent_loop(
                         )
                     )
                 elif delta.kind == "done":
+                    prompt_tokens = delta.prompt_tokens
+                    output_tokens = delta.output_tokens
                     break
+
+            if ctx.turn_id and ctx.turn_usage is not None and (prompt_tokens or output_tokens):
+                await record_turn_usage(
+                    ctx.db,
+                    user_id=ctx.user_id,
+                    task_id=ctx.task_id,
+                    turn_id=ctx.turn_id,
+                    source="sub_agent",
+                    input_tokens=prompt_tokens,
+                    output_tokens=output_tokens,
+                    turn_usage=ctx.turn_usage,
+                    emit=emit,
+                    agent_name=agent_name,
+                )
 
             if text_acc:
                 output_text = text_acc

@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator
 
 import httpx
 
-from core.llm.types import LLMDelta, LLMMessage, ToolDefinition
+from core.llm.types import LLMChatResult, LLMDelta, LLMMessage, LLMUsage, ToolDefinition
 
 
 def _build_tools(tools: list[ToolDefinition]) -> list[dict]:  # type: ignore[type-arg]
@@ -75,7 +75,7 @@ class AnthropicProvider:
         *,
         max_tokens: int = 4096,
         temperature: float = 0.3,
-    ) -> str:
+    ) -> LLMChatResult:
         system, msgs = _messages_to_anthropic(messages)
         payload: dict = {  # type: ignore[type-arg]
             "model": self._model,
@@ -93,10 +93,19 @@ class AnthropicProvider:
             )
             resp.raise_for_status()
             data = resp.json()
+            text = ""
             for block in data.get("content", []):
                 if block.get("type") == "text":
-                    return block["text"]
-        return ""
+                    text = block["text"]
+                    break
+            usage = data.get("usage") or {}
+            return LLMChatResult(
+                content=text,
+                usage=LLMUsage(
+                    input_tokens=usage.get("input_tokens"),
+                    output_tokens=usage.get("output_tokens"),
+                ),
+            )
 
     async def stream(
         self,

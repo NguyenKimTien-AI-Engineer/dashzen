@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from typing import Protocol, runtime_checkable
 
-from core.llm.types import LLMDelta, LLMMessage, ToolDefinition
+from core.llm.types import LLMChatResult, LLMDelta, LLMMessage, ToolDefinition
 
 
 @runtime_checkable
@@ -14,7 +14,7 @@ class LLMClient(Protocol):
         *,
         max_tokens: int = 4096,
         temperature: float = 0.3,
-    ) -> str: ...
+    ) -> LLMChatResult: ...
 
     async def stream(
         self,

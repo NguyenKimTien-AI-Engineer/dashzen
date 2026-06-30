@@ -60,15 +60,23 @@ class ActivitySection:
 @dataclass
 class ActivityLog:
     header_title: str = ""
+    usage_input_tokens: int = 0
+    usage_output_tokens: int = 0
     sections: list[ActivitySection] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data: dict[str, Any] = {
             "type": "activity_log",
             "version": 1,
             "header_title": self.header_title,
             "sections": [s.to_dict() for s in self.sections],
         }
+        if self.usage_input_tokens or self.usage_output_tokens:
+            data["usage"] = {
+                "input_tokens": self.usage_input_tokens,
+                "output_tokens": self.usage_output_tokens,
+            }
+        return data
 
 
 def parse_activity_log(thinking_json: str | None) -> ActivityLog | None:
@@ -100,6 +108,8 @@ def parse_activity_log(thinking_json: str | None) -> ActivityLog | None:
         )
     return ActivityLog(
         header_title=str(decoded.get("header_title", "")),
+        usage_input_tokens=int((decoded.get("usage") or {}).get("input_tokens", 0) or 0),
+        usage_output_tokens=int((decoded.get("usage") or {}).get("output_tokens", 0) or 0),
         sections=sections,
     )
 
@@ -125,9 +135,15 @@ class ActivityLogAccumulator:
         self._main_think_iteration = iteration
 
     def set_header_title(self, title: str) -> None:
-        cleaned = title.strip()
+        from agents.orchestration.title_normalize import normalize_task_title
+
+        cleaned = normalize_task_title(title)
         if cleaned:
             self._log.header_title = cleaned
+
+    def set_usage(self, input_tokens: int, output_tokens: int) -> None:
+        self._log.usage_input_tokens = input_tokens
+        self._log.usage_output_tokens = output_tokens
 
     def _section_for_call(self, call_id: str) -> ActivitySection | None:
         return self._sections_by_call.get(call_id)
@@ -252,9 +268,11 @@ class ActivityLogAccumulator:
             pass
 
     def finalize_orchestrator(self) -> None:
-        has_main_think = any(k.startswith("main-") for k in self._think_buffers)
-        if self._orchestrator.steps or has_main_think:
+        if self._orchestrator.steps:
             self._orchestrator.status = "done"
+            return
+        if self._orchestrator in self._log.sections:
+            self._log.sections.remove(self._orchestrator)
 
     def build(self) -> ActivityLog:
         self.finalize_orchestrator()

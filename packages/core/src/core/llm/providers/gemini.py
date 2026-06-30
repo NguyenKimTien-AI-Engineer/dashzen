@@ -7,7 +7,7 @@ from typing import Any
 
 import httpx
 
-from core.llm.types import LLMDelta, LLMMessage, ToolDefinition
+from core.llm.types import LLMChatResult, LLMDelta, LLMMessage, LLMUsage, ToolDefinition
 
 _GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
@@ -95,6 +95,24 @@ def _messages_to_gemini(
     return system_instruction, contents
 
 
+def deltas_from_gemini_parts(parts: list[dict[str, Any]]) -> list[LLMDelta]:
+    """Map Gemini content parts to provider-neutral stream deltas."""
+    deltas: list[LLMDelta] = []
+    for part in parts:
+        if not isinstance(part, dict):
+            continue
+        if "functionCall" in part:
+            continue
+        text = part.get("text")
+        if not text:
+            continue
+        if part.get("thought"):
+            deltas.append(LLMDelta(kind="thinking_delta", thinking=text))
+        else:
+            deltas.append(LLMDelta(kind="text_delta", text=text))
+    return deltas
+
+
 class GeminiProvider:
     def __init__(self, api_key: str, model: str) -> None:
         self._api_key = api_key
@@ -113,14 +131,21 @@ class GeminiProvider:
         *,
         max_tokens: int,
         temperature: float,
+        thinking_enabled: bool = False,
     ) -> dict[str, Any]:
         system_instruction, contents = _messages_to_gemini(messages)
+        generation_config: dict[str, Any] = {
+            "maxOutputTokens": max_tokens,
+            "temperature": temperature,
+        }
+        if thinking_enabled:
+            generation_config["thinkingConfig"] = {
+                "includeThoughts": True,
+                "thinkingBudget": -1,
+            }
         payload: dict[str, Any] = {
             "contents": contents,
-            "generationConfig": {
-                "maxOutputTokens": max_tokens,
-                "temperature": temperature,
-            },
+            "generationConfig": generation_config,
         }
         if system_instruction:
             payload["systemInstruction"] = system_instruction
@@ -135,7 +160,7 @@ class GeminiProvider:
         *,
         max_tokens: int = 4096,
         temperature: float = 0.3,
-    ) -> str:
+    ) -> LLMChatResult:
         payload = self._build_payload(messages, [], max_tokens=max_tokens, temperature=temperature)
         async with httpx.AsyncClient(timeout=120) as client:
             resp = await client.post(
@@ -145,10 +170,19 @@ class GeminiProvider:
             )
             resp.raise_for_status()
             data = resp.json()
+            text = ""
             for part in data.get("candidates", [{}])[0].get("content", {}).get("parts", []):
                 if "text" in part:
-                    return part["text"]
-        return ""
+                    text = part["text"]
+                    break
+            usage_meta = data.get("usageMetadata") or {}
+            return LLMChatResult(
+                content=text,
+                usage=LLMUsage(
+                    input_tokens=usage_meta.get("promptTokenCount"),
+                    output_tokens=usage_meta.get("candidatesTokenCount"),
+                ),
+            )
 
     async def stream(
         self,
@@ -160,7 +194,11 @@ class GeminiProvider:
         thinking_enabled: bool = False,
     ) -> AsyncGenerator[LLMDelta, None]:
         payload = self._build_payload(
-            messages, tools, max_tokens=max_tokens, temperature=temperature
+            messages,
+            tools,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            thinking_enabled=thinking_enabled,
         )
         prompt_tokens: int | None = None
         output_tokens: int | None = None
@@ -196,9 +234,10 @@ class GeminiProvider:
                         output_tokens = usage.get("candidatesTokenCount", output_tokens)
 
                     for candidate in event.get("candidates", []):
-                        for part in candidate.get("content", {}).get("parts", []):
-                            if "text" in part:
-                                yield LLMDelta(kind="text_delta", text=part["text"])
+                        parts = candidate.get("content", {}).get("parts", [])
+                        for delta in deltas_from_gemini_parts(parts):
+                            yield delta
+                        for part in parts:
                             if "functionCall" in part:
                                 fn = part["functionCall"]
                                 buffered_tool_calls.append(

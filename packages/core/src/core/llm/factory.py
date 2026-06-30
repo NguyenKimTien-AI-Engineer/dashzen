@@ -5,6 +5,7 @@ from core.llm.providers.gemini import GeminiProvider
 from core.llm.providers.ollama import OllamaProvider
 from core.llm.providers.openai import OpenAIProvider
 from core.llm.providers.openrouter import OpenRouterProvider
+from core.llm.providers.vilao import VilaoProvider
 
 
 def get_llm_client() -> LLMClient:
@@ -30,6 +31,14 @@ def get_llm_client() -> LLMClient:
             settings.openrouter_model,
             site_url=settings.openrouter_site_url,
             app_name=settings.openrouter_app_name,
+        )  # type: ignore[return-value]
+    if provider == "vilao":
+        if not settings.vilao_api_key:
+            raise ValueError("VILAO_API_KEY is required when LLM_PROVIDER=vilao")
+        return VilaoProvider(
+            settings.vilao_api_key,
+            settings.vilao_model,
+            base_url=settings.vilao_base_url,
         )  # type: ignore[return-value]
     return OllamaProvider(
         settings.ollama_base_url,

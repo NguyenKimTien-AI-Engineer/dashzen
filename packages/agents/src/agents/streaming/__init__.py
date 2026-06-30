@@ -16,6 +16,7 @@ from agents.streaming.events import (
     StreamErrorEvent,
     StreamEvent,
     TaskMetaEvent,
+    UsageUpdateEvent,
     serialize_sse,
 )
 from agents.streaming.lock import StreamLock, StreamLockError, stream_lock
@@ -43,6 +44,7 @@ __all__ = [
     "FileArtifactEvent",
     "TaskMetaEvent",
     "HeartbeatEvent",
+    "UsageUpdateEvent",
     "StreamDoneEvent",
     "StreamErrorEvent",
 ]

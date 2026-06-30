@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 import structlog
 from core.llm.budget import (
@@ -22,6 +24,8 @@ from agents.context.history import (
     build_history,
     microcompact_tool_messages,
 )
+from agents.usage.accumulator import UsageAccumulator
+from agents.usage.recorder import record_turn_usage
 
 log = structlog.get_logger()
 
@@ -54,7 +58,16 @@ def _split_keep_tail(messages: list[LLMMessage], keep_tokens: int, ratio: float)
     return 0
 
 
-async def _summarize_messages(messages: list[LLMMessage]) -> str:
+async def _summarize_messages(
+    messages: list[LLMMessage],
+    *,
+    db: AsyncSession | None = None,
+    user_id: uuid.UUID | None = None,
+    task_id: uuid.UUID | None = None,
+    turn_id: uuid.UUID | None = None,
+    turn_usage: UsageAccumulator | None = None,
+    emit: Callable[[Any], None] | None = None,
+) -> str:
     lines: list[str] = []
     for msg in messages:
         role = msg.role
@@ -74,11 +87,25 @@ async def _summarize_messages(messages: list[LLMMessage]) -> str:
         f"{transcript}"
     )
     client = get_llm_client()
-    return await client.chat(
+    result = await client.chat(
         [LLMMessage(role="user", content=prompt)],
         max_tokens=4096,
         temperature=0.2,
     )
+    in_t, out_t = result.usage.or_zero()
+    if db and user_id and task_id and turn_id and turn_usage is not None and (in_t or out_t):
+        await record_turn_usage(
+            db,
+            user_id=user_id,
+            task_id=task_id,
+            turn_id=turn_id,
+            source="compaction",
+            input_tokens=in_t,
+            output_tokens=out_t,
+            turn_usage=turn_usage,
+            emit=emit,
+        )
+    return result.content
 
 
 async def compact_if_over_budget(
@@ -89,6 +116,10 @@ async def compact_if_over_budget(
     *,
     leaf_id: uuid.UUID | None = None,
     parent_id: uuid.UUID | None = None,
+    user_id: uuid.UUID | None = None,
+    turn_id: uuid.UUID | None = None,
+    turn_usage: UsageAccumulator | None = None,
+    emit: Callable[[Any], None] | None = None,
 ) -> tuple[list[LLMMessage], bool]:
     if state.compaction_exhausted:
         return messages, False
@@ -120,7 +151,15 @@ async def compact_if_over_budget(
 
     to_summarize = full_history[:split_at]
     tail = full_history[split_at:]
-    summary = await _summarize_messages(to_summarize)
+    summary = await _summarize_messages(
+        to_summarize,
+        db=db,
+        user_id=user_id,
+        task_id=task_id,
+        turn_id=turn_id,
+        turn_usage=turn_usage,
+        emit=emit,
+    )
 
     if parent_id is not None:
         await create_message(
