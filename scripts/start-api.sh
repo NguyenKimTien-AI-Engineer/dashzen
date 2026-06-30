@@ -10,6 +10,14 @@ cd "$ROOT"
 
 PORT="${PORT:-8000}"
 
+load_env_files() {
+  if command -v uv >/dev/null 2>&1; then
+    uv run python -c "from core.env_files import load_env_files; load_env_files()"
+  else
+    python -c "from core.env_files import load_env_files; load_env_files()"
+  fi
+}
+
 run_migrate() {
   if command -v uv >/dev/null 2>&1; then
     (cd packages/db && uv run alembic upgrade head)
@@ -25,6 +33,9 @@ run_api() {
     exec uvicorn api.main:app --host 0.0.0.0 --port "$PORT"
   fi
 }
+
+echo "==> Loading environment..."
+load_env_files
 
 echo "==> Running database migrations..."
 run_migrate

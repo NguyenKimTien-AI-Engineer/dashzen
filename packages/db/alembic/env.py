@@ -1,10 +1,10 @@
 import asyncio
 from logging.config import fileConfig
-from pathlib import Path
 
 from alembic import context
 from core.config import get_settings
 from core.database_url import database_url_for_async_engine
+from core.env_files import load_env_files
 from db.base import Base
 from db.models.agent_run import AgentRun  # noqa: F401
 from db.models.email_verification import EmailVerificationCode  # noqa: F401
@@ -23,18 +23,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Ensure repo-root .env is loaded when running from packages/db
-_repo_root = Path(__file__).resolve().parents[3]
-_env_file = _repo_root / ".env"
-if _env_file.is_file():
-    import os
-
-    for line in _env_file.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or "=" not in stripped:
-            continue
-        key, value = stripped.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip())
+# Load repo-root / PaaS env files before Settings (cwd may be packages/db).
+load_env_files()
 
 target_metadata = Base.metadata
 settings = get_settings()

@@ -27,7 +27,7 @@ services:
       - key: EMAIL_BACKEND
         value: console
       - key: LLM_PROVIDER
-        value: ollama
+        value: gemini
       - key: GEMINI_MODEL
         value: gemini-2.0-flash-lite
       - key: COOKIE_SECURE
@@ -51,6 +51,15 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # ── Alternative LLM (set LLM_PROVIDER + keys in dashboard) ──
+      # - key: OPENROUTER_API_KEY
+      #   sync: false
+      # - key: OPENROUTER_MODEL
+      #   value: deepseek/deepseek-v4-flash
+      # - key: OPENROUTER_SITE_URL
+      #   sync: false
+      # - key: VILAO_API_KEY
+      #   sync: false
       # ── Google OAuth (set secrets in Render dashboard) ──
       - key: GOOGLE_OAUTH_ENABLED
         value: "true"

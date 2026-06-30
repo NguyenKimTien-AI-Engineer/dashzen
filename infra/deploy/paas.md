@@ -49,6 +49,11 @@ Do **not** set `NEXT_PUBLIC_API_URL` to the Render URL in production.
 
 Also: `DATABASE_URL`, `JWT_SECRET_KEY`, `API_PUBLIC_URL`, `GEMINI_API_KEY`.
 
+**Secret Files (optional):** Render mounts files at `/app/<filename>` and `/etc/secrets/<filename>`.
+The API loads `.env`, `.env.production`, and those paths under `/etc/secrets/`.
+You can paste `.env.production.example` into a Secret File named `.env.production`.
+Dashboard **Environment Variables** still work and override file values.
+
 ### Local dev
 
 | Variable | Value |

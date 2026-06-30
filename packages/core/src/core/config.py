@@ -176,4 +176,7 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    from core.env_files import load_env_files
+
+    load_env_files()
     return Settings()
