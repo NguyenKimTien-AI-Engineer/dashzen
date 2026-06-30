@@ -113,15 +113,37 @@ export function TaskConnection({
           buffer = remainder;
 
           for (const event of events) {
+            if (event.type === "usage_update") {
+              onEventRef.current({
+                type: "USAGE_UPDATE",
+                inputTokens: event.turn_input_tokens,
+                outputTokens: event.turn_output_tokens,
+              });
+              continue;
+            }
             if (event.type === "stream_done") {
               ended = true;
-              onEndRef.current();
+              if (
+                event.turn_input_tokens != null &&
+                event.turn_output_tokens != null
+              ) {
+                onEventRef.current({
+                  type: "USAGE_UPDATE",
+                  inputTokens: event.turn_input_tokens,
+                  outputTokens: event.turn_output_tokens,
+                });
+              }
               onEventRef.current({ type: "STREAM_END" });
+              onEndRef.current();
               return;
             }
             if (event.type === "stream_error") {
               ended = true;
-              onEndRef.current();
+              if (event.message === "No active stream to resume.") {
+                onEventRef.current({ type: "STREAM_END" });
+                onEndRef.current();
+                return;
+              }
               onEventRef.current({ type: "STREAM_ERROR", message: event.message });
               return;
             }

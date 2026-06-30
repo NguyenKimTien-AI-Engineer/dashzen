@@ -29,8 +29,26 @@ Your output must be **visually distinctive**: every dashboard derives its own co
 
 ## Tool discipline
 
-- Call `write_file` for `dashboard.html` **exactly once** per run. Use `edit_file` for fixes — never call `write_file` again for the same path.
+- Call `write_file` for `dashboard.html` **exactly once** per run to create the initial file. Use `edit_file` for all subsequent changes.
 - Do not use `list_file` to check whether input files exist — use `read_file` directly.
+
+### Writing large dashboards without truncation
+
+Dashboard HTML can exceed 20KB, which causes write_file output to truncate mid-code. Use this strategy to avoid truncation:
+
+**Option A — Two-phase write (preferred for large dashboards):**
+1. `write_file` — write the complete HTML skeleton: `<!DOCTYPE html>`, `<head>`, CDN tags, Tailwind config, CSS custom properties, `<body>` structure, all widget DOM containers, empty `<script>` tag with placeholder `// SCRIPT_PLACEHOLDER`, and `<!-- builder -->`.
+2. `edit_file` — replace `// SCRIPT_PLACEHOLDER` with the full JavaScript block: `MOCK_DATA` constant, helpers, `renderDashboard()`, filter logic, and animations.
+
+**Option B — Inline data generation (use when `bindings.md` contains `mockSeed`):**
+When `bindings.md` has a `mockSeed` block instead of full inline data, generate the data programmatically in JS using a `generateMockData(seed)` function. Embed only the compact seed object (`const MOCK_SEED = {...}`) instead of a large `MOCK_DATA` array. This keeps the file well under 20KB.
+
+### Recovery when write_file produces an incomplete file
+
+If you called `write_file` and the result is incomplete (file ends mid-code, missing `</script>`, `</html>`, or `<!-- builder -->`), recover with `edit_file`:
+1. `read_file` `dashboard.html` to see the last valid line.
+2. `edit_file` — use the last 2–3 complete lines as `old_string` and replace them with those same lines **plus** all the missing code through `<!-- builder -->`.
+3. Never call `write_file` again for the same path — always use `edit_file` to complete or fix.
 
 # 3. Input
 
@@ -42,14 +60,16 @@ Your output must be **visually distinctive**: every dashboard derives its own co
 # 4. Process
 
 1. `read_file` all three input files. Extract `visualTheme`, `colorScheme`, `visualMood`, `typography`, `language` from spec frontmatter.
-2. Derive the **Visual System** (§ Visual System) — colors, fonts, CSS custom properties — before writing any HTML.
-3. Build the document head: CDNs, Tailwind config with brand tokens, Google Fonts, Iconify, `<style>` for custom properties and animations.
-4. Build layout structure from `layout.md`: header, optional sidebar or filter bar, widget grid following the specified layout pattern.
-5. Implement each widget from `spec.md` using the appropriate technique (§ Widget Techniques). Wire data from `bindings.md` as inline JS constants.
-6. Implement filter logic: a central `applyFilters()` call; all widgets re-render with filtered data. Initialize filter inputs from `bindings.md` `defaultFilters` — never `new Date()` for defaults.
-7. Add the Animation Layer (§ Animation Layer) — entry reveal, KPI count-up, ECharts entrance. Widgets must stay **visible** if JS errors.
-8. Self-check (§ Pre-write checklist) — all gates pass before `write_file`.
-9. `write_file` `dashboard.html`.
+2. Check `bindings.md` for `mockSeed` vs inline `mockData`. Choose the appropriate data wiring strategy (§ Data Wiring).
+3. **Estimate output size**: If the file will be large (many widgets, large inline data, complex JS), use the two-phase write strategy (§ Tool discipline) to avoid truncation.
+4. Derive the **Visual System** (§ Visual System) — colors, fonts, CSS custom properties — before writing any HTML.
+5. Build the document head: CDNs, Tailwind config with brand tokens, Google Fonts, Iconify, `<style>` for custom properties and animations.
+6. Build layout structure from `layout.md`: header, optional sidebar or filter bar, widget grid following the specified layout pattern.
+7. Implement each widget from `spec.md` using the appropriate technique (§ Widget Techniques). Wire data from `bindings.md` as inline JS constants or seed-based generator.
+8. Implement filter logic: a central `applyFilters()` call; all widgets re-render with filtered data. Initialize filter inputs from `bindings.md` `defaultFilters` — never `new Date()` for defaults.
+9. Add the Animation Layer (§ Animation Layer) — entry reveal, KPI count-up, ECharts entrance. Widgets must stay **visible** if JS errors.
+10. Self-check (§ Pre-write checklist) — all gates pass before `write_file`.
+11. `write_file` `dashboard.html` (or use two-phase strategy if content is large). Verify the written file ends with `<!-- builder -->` — if not, use `edit_file` to complete it immediately.
 
 # 5. Output
 
@@ -175,7 +195,16 @@ Wrap IntersectionObserver and count-up in `prefers-reduced-motion` check — sho
 
 ## Data Wiring
 
+### Inline data (bindings.md has `mockData` arrays)
 - Embed `const MOCK_DATA = [...]` from `bindings.md` at the top of `<script>`.
+
+### Seed-based data (bindings.md has `mockSeed`)
+When `bindings.md` contains a `mockSeed` block instead of full inline data:
+- Embed `const MOCK_SEED = { ... }` (compact seed object, a few hundred bytes).
+- Write a `function generateMockData(seed)` that produces the full dataset from the seed: iterate dates, apply `dimensionMultipliers`, add noise using `Math.sin`-based pseudo-randomness for reproducibility.
+- Set `const MOCK_DATA = generateMockData(MOCK_SEED)` so downstream logic is identical either way.
+
+### Always
 - Embed `const DEFAULT_FILTERS = { ... }` from `bindings.md` `defaultFilters`.
 - On `DOMContentLoaded`: set each filter input from `DEFAULT_FILTERS` **before** first `renderDashboard()`. Never use `new Date()`.
 - `getFilteredData()` — filter `MOCK_DATA` using current control values.

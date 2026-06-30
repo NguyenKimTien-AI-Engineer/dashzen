@@ -21,6 +21,7 @@ def test_resolve_thinking_enabled_ollama_default() -> None:
 
 def test_resolve_thinking_enabled_other_providers_default_off() -> None:
     assert not resolve_thinking_enabled(None, provider="anthropic", ollama_thinking_enabled=True)
+    assert resolve_thinking_enabled(None, provider="gemini", ollama_thinking_enabled=False)
 
 
 def test_resolve_ollama_think_param_disabled() -> None:

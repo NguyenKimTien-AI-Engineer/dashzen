@@ -55,12 +55,39 @@ Mock data must be **realistic and rich**: the builder renders it visually, so th
 
 When generating mock data (`source: mock`), the data must look like it came from a real business:
 
-- **Size:** time-series ≥ 12–24 data points (12 months, 24 weeks, or 30 days); category datasets ≥ 6–12 categories.
+- **Size:** time-series ≥ 12–24 data points; category datasets ≥ 6–12 categories.
+- **Row cap:** embed **at most 50 rows** of inline JSON total across all datasets in bindings.md. Exceeding 50 rows causes downstream files to grow too large to generate reliably.
+  - For time-series × multiple dimensions (e.g. `channel × date`): **aggregate to the coarser grain** — use monthly or weekly totals, not daily. 12 months × 3 channels = 36 rows (acceptable). 31 days × 3 channels = 93 rows (too many).
+  - For daily-grain data with many categories: instead of embedding all rows, embed a **`mockSeed`** block (see below) and let the builder generate data programmatically in JS.
 - **Distribution:** follow plausible patterns — growth trends, seasonal peaks, Pareto distributions on categories (top 20% typically hold 60–80% of value). Avoid flat or uniform values.
 - **Internal consistency:** if multiple widgets share the same domain (e.g. revenue, units, orders), their values must be mutually coherent. Total must roughly equal sum of parts.
 - **Named realism:** category labels (regions, products, segments) must be plausible and domain-appropriate, drawn from the spec's purpose and language.
 - **Numeric scale:** use a scale that makes formatted values readable — currency in thousands-to-millions range, percentages spread meaningfully across 0–100%.
 - **Multi-series differentiation:** each series must have its own trend — do not mirror one series from another.
+
+### mockSeed (use when inline rows would exceed 50)
+
+Instead of embedding full data, provide a seed specification the builder uses to generate data programmatically:
+
+```yaml
+mockSeed:
+  grain: daily          # daily | weekly | monthly
+  date_from: "2024-05-01"
+  date_to: "2024-05-31"
+  dimensions:           # category fields and their values
+    channel: [Google, Facebook, TikTok]
+  metrics:
+    spend:   { base: 300, trend: +0.5%, noise: 15% }   # per dimension per day
+    revenue: { base: 1200, trend: +0.8%, noise: 20%, derivedFrom: "spend * roas" }
+    conversions: { base: 40, trend: +0.3%, noise: 25% }
+    clicks:  { base: 1500, trend: +0.2%, noise: 10% }
+  dimensionMultipliers:
+    Google:   { spend: 1.5, revenue: 1.8 }
+    Facebook: { spend: 1.0, revenue: 1.1 }
+    TikTok:   { spend: 0.6, revenue: 0.7 }
+```
+
+When `mockSeed` is present, set `mockData: null` in each widget binding — the builder will generate the data using the seed in a `<script>` function.
 
 ## Default Filters (required)
 

@@ -18,6 +18,7 @@ describe("composeChatMessages", () => {
   it("appends optimistic user when not yet in persisted list", () => {
     const streamTurn: StreamTurn = {
       optimisticUserId: "opt-1",
+      optimisticAssistantId: "opt-asst-1",
       userContent: "new question",
       startedAt: Date.now(),
     };
@@ -27,12 +28,45 @@ describe("composeChatMessages", () => {
     expect(result[1].id).toBe("opt-1");
   });
 
-  it("does not duplicate user message already in persisted list", () => {
+  it("does not duplicate when the same optimistic id is already present", () => {
     const streamTurn: StreamTurn = {
-      optimisticUserId: "opt-1",
+      optimisticUserId: "m1",
+      optimisticAssistantId: "opt-asst-1",
       userContent: "hello",
       startedAt: Date.now(),
     };
     expect(composeChatMessages([baseMessage], streamTurn)).toEqual([baseMessage]);
+  });
+
+  it("skips optimistic user when server already persisted the same content", () => {
+    const streamTurn: StreamTurn = {
+      optimisticUserId: "opt-2",
+      optimisticAssistantId: "opt-asst-2",
+      userContent: "hello",
+      startedAt: Date.now(),
+    };
+    expect(composeChatMessages([baseMessage], streamTurn)).toEqual([baseMessage]);
+  });
+
+  it("allows duplicate content when prior user message is followed by assistant reply", () => {
+    const streamTurn: StreamTurn = {
+      optimisticUserId: "opt-2",
+      optimisticAssistantId: "opt-asst-2",
+      userContent: "hello",
+      startedAt: Date.now(),
+    };
+    const persisted: DisplayMessage[] = [
+      baseMessage,
+      {
+        id: "a1",
+        role: "assistant",
+        content: "Hi there",
+        status: "sent",
+        createdAt: new Date("2026-01-02"),
+      },
+    ];
+    const result = composeChatMessages(persisted, streamTurn);
+    expect(result).toHaveLength(3);
+    expect(result[2].id).toBe("opt-2");
   });
 });

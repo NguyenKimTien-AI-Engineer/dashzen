@@ -73,7 +73,16 @@ class StreamSessionManager:
         session = cls._sessions.get(task_id)
         if session is None:
             return RunStatusSnapshot(status="idle")
+        terminal = _has_terminal_event(session.events)
         if session.producer_task is not None and not session.producer_task.done():
+            # stream_done / stream_error may be emitted before the producer task exits;
+            # treat as finished so reopening the chat does not reconnect and replay.
+            if terminal:
+                return RunStatusSnapshot(
+                    status="done" if session.status != "error" else "error",
+                    started_at=session.started_at,
+                    event_count=len(session.events),
+                )
             return RunStatusSnapshot(
                 status="running",
                 started_at=session.started_at,

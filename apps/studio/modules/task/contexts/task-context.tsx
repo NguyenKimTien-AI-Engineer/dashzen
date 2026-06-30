@@ -13,18 +13,24 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { answerAskGate, stopTask } from "@/lib/api/tasks";
+import { answerAskGate, getMessages, stopTask } from "@/lib/api/tasks";
 import { taskKeys } from "@/modules/task/lib/query-keys";
 import {
+  activityLogHasContent,
+  buildLiveActivityLog,
+} from "@/modules/task/lib/build-live-activity-log";
+import {
   getLastMessageParentId,
+  mergeRicherActivityLogAfterRefetch,
   patchMessageCacheAfterStream,
 } from "@/modules/task/lib/patch-message-cache";
+import { showStreamErrorToast } from "@/modules/task/lib/stream-error-toast";
 import { useTaskMessages } from "@/modules/task/hooks/useTaskMessages";
 import { useTaskStreamRecovery } from "@/modules/task/hooks/useTaskStreamRecovery";
 import type { StreamRequest, FileArtifact } from "@/modules/task/types/api";
 import { initialTaskState } from "@/modules/task/types/task-state";
 import { TaskConnection, type StreamConnectionError } from "./task-connection";
-import { taskReducer } from "./task-reducer";
+import { taskReducer, type TaskAction } from "./task-reducer";
 
 type TaskContextValue = {
   sendMessage: (text: string) => void;
@@ -58,30 +64,80 @@ export function TaskProvider({ taskId, children, initialMessage }: TaskProviderP
   const [streamBody, setStreamBody] = useState<StreamRequest | null>(null);
   const [connectionMode, setConnectionMode] = useState<"send" | "subscribe">("send");
   const abortRef = useRef<AbortController | null>(null);
+  const lastUserMessageRef = useRef<string | null>(null);
   const streamSnapshotRef = useRef({
     streamTurn: state.streamTurn,
     streamingText: state.streamingText,
+    activityLog: null as ReturnType<typeof buildLiveActivityLog> | null,
+    turnUsage: state.turnUsage,
   });
   const { data: apiMessages, isSuccess: messagesReady } = useTaskMessages(taskId);
 
   useEffect(() => {
+    const activityLog = buildLiveActivityLog(
+      state.thinkingText,
+      state.toolCalls,
+      state.agentBlocks,
+      state.taskMeta.title,
+      state.turnUsage
+        ? {
+            input_tokens: state.turnUsage.inputTokens,
+            output_tokens: state.turnUsage.outputTokens,
+          }
+        : null,
+    );
     streamSnapshotRef.current = {
       streamTurn: state.streamTurn,
       streamingText: state.streamingText,
+      activityLog: activityLogHasContent(activityLog) ? activityLog : null,
+      turnUsage: state.turnUsage,
     };
-  }, [state.streamTurn, state.streamingText]);
+  }, [
+    state.streamTurn,
+    state.streamingText,
+    state.thinkingText,
+    state.toolCalls,
+    state.agentBlocks,
+    state.taskMeta.title,
+    state.turnUsage,
+  ]);
+
+  useEffect(() => {
+    lastUserMessageRef.current = state.lastUserMessage;
+  }, [state.lastUserMessage]);
+
+  const retryLastMessage = useCallback(() => {
+    const message = lastUserMessageRef.current;
+    if (!message) return;
+    dispatch({ type: "CLEAR_ERROR" });
+    sendMessageRef.current(message);
+  }, []);
+
+  const refetchMessages = useCallback(async () => {
+    const result = await queryClient.fetchQuery({
+      queryKey: taskKeys.messages(taskId),
+      queryFn: () => getMessages(taskId),
+    });
+    return result;
+  }, [queryClient, taskId]);
 
   const invalidateAfterStream = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: taskKeys.artifacts(taskId) });
     void queryClient.invalidateQueries({ queryKey: taskKeys.all });
     void queryClient.invalidateQueries({ queryKey: taskKeys.detail(taskId) });
+    void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
   }, [queryClient, taskId]);
 
   const handleStreamEnd = useCallback(() => {
-    patchMessageCacheAfterStream(queryClient, taskId, streamSnapshotRef.current);
+    const snapshot = streamSnapshotRef.current;
+    patchMessageCacheAfterStream(queryClient, taskId, snapshot);
     setStreamBody(null);
     setConnectionMode("send");
-    void queryClient.refetchQueries({ queryKey: taskKeys.messages(taskId) });
+    void queryClient
+      .refetchQueries({ queryKey: taskKeys.messages(taskId) })
+      .then(() => {
+        mergeRicherActivityLogAfterRefetch(queryClient, taskId, snapshot);
+      });
     invalidateAfterStream();
   }, [queryClient, taskId, invalidateAfterStream]);
 
@@ -106,19 +162,38 @@ export function TaskProvider({ taskId, children, initialMessage }: TaskProviderP
       setStreamBody(null);
       return;
     }
-    if (error.kind === "not_found") {
-      toast.error("Task not found.");
-    } else if (error.kind === "unauthorized") {
-      toast.error("Session expired. Please sign in again.");
-    } else {
-      toast.error(error.message);
-    }
+
+    const message =
+      error.kind === "not_found"
+        ? "Task not found."
+        : error.kind === "unauthorized"
+          ? "Session expired. Please sign in again."
+          : error.message;
+
     dispatch({
       type: "SET_CONNECTION_ERROR",
-      error: { message: error.message, kind: error.kind === "network" ? "connection" : "stream" },
+      error: { message, kind: error.kind === "network" ? "connection" : "stream" },
     });
     setStreamBody(null);
-  }, []);
+    setConnectionMode("send");
+    void refetchMessages().catch(() => {});
+    showStreamErrorToast(message, retryLastMessage);
+  }, [refetchMessages, retryLastMessage]);
+
+  const handleStreamEvent = useCallback(
+    (action: TaskAction) => {
+      if (action.type === "STREAM_ERROR") {
+        dispatch(action);
+        setStreamBody(null);
+        setConnectionMode("send");
+        void refetchMessages().catch(() => {});
+        showStreamErrorToast(action.message, retryLastMessage);
+        return;
+      }
+      dispatch(action);
+    },
+    [refetchMessages, retryLastMessage],
+  );
 
   const sendMessageRef = useRef<(text: string) => void>(() => {});
 
@@ -179,11 +254,8 @@ export function TaskProvider({ taskId, children, initialMessage }: TaskProviderP
   }, [taskId, queryClient, invalidateAfterStream]);
 
   const retry = useCallback(() => {
-    if (state.lastUserMessage) {
-      dispatch({ type: "CLEAR_ERROR" });
-      sendMessage(state.lastUserMessage);
-    }
-  }, [state.lastUserMessage, sendMessage]);
+    retryLastMessage();
+  }, [retryLastMessage]);
 
   const clearError = useCallback(() => {
     dispatch({ type: "CLEAR_ERROR" });
@@ -240,7 +312,7 @@ export function TaskProvider({ taskId, children, initialMessage }: TaskProviderP
           taskId={taskId}
           body={streamBody}
           mode={connectionMode}
-          onEvent={(action) => dispatch(action)}
+          onEvent={handleStreamEvent}
           onEnd={handleStreamEnd}
           onError={handleConnectionError}
         />

@@ -71,3 +71,21 @@ async def test_subscribe_from_cursor_skips_replayed_prefix() -> None:
 
 def test_run_status_idle_when_no_session() -> None:
     assert StreamSessionManager.get_status("missing-task").status == "idle"
+
+
+@pytest.mark.asyncio
+async def test_run_status_done_when_terminal_event_emitted_but_producer_active() -> None:
+    task_id = "task-terminal"
+    session = StreamSession(task_id=task_id, user_id=uuid.uuid4(), message="hello")
+    session.producer_task = asyncio.create_task(asyncio.sleep(60))
+    session.push_event(serialize_sse(StreamDoneEvent()))
+    StreamSessionManager._sessions[task_id] = session
+
+    try:
+        snapshot = StreamSessionManager.get_status(task_id)
+        assert snapshot.status == "done"
+    finally:
+        session.producer_task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await session.producer_task
+        StreamSessionManager._sessions.pop(task_id, None)

@@ -11,10 +11,17 @@ export function composeChatMessages(
 ): DisplayMessage[] {
   if (!streamTurn) return persisted;
 
-  const userAlreadyVisible = persisted.some(
-    (m) => m.role === "user" && m.content === streamTurn.userContent,
-  );
-  if (userAlreadyVisible) return persisted;
+  if (persisted.some((m) => m.id === streamTurn.optimisticUserId)) {
+    return persisted;
+  }
+
+  const lastMessage = persisted.at(-1);
+  if (
+    lastMessage?.role === "user" &&
+    lastMessage.content.trim() === streamTurn.userContent.trim()
+  ) {
+    return persisted;
+  }
 
   return [
     ...persisted,

@@ -44,6 +44,8 @@ def _enrich_message(
         "content": msg.content,
         "parent_id": msg.parent_id,
         "prompt_tokens": msg.prompt_tokens,
+        "output_tokens": msg.output_tokens,
+        "turn_id": msg.turn_id,
         "created_at": msg.created_at,
         "branch_info": _branch_info_for(msg, siblings_by_parent),
     }
@@ -60,6 +62,8 @@ async def create_message(
     content: str,
     parent_id: uuid.UUID | None = None,
     prompt_tokens: int | None = None,
+    output_tokens: int | None = None,
+    turn_id: uuid.UUID | None = None,
     thinking: str | None = None,
 ) -> Message:
     msg = Message(
@@ -68,6 +72,8 @@ async def create_message(
         content=content,
         parent_id=parent_id,
         prompt_tokens=prompt_tokens,
+        output_tokens=output_tokens,
+        turn_id=turn_id,
         thinking=thinking,
     )
     db.add(msg)

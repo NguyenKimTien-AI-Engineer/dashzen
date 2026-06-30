@@ -3,8 +3,6 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { toast } from "sonner";
 import { getRunStatus } from "@/lib/api/tasks";
-import { findOrphanUserMessage } from "@/modules/task/lib/detect-orphan-message";
-import { normalizeMessages } from "@/modules/task/lib/normalize-messages";
 import type { Message } from "@/modules/task/types/api";
 
 type UseTaskStreamRecoveryOptions = {
@@ -48,27 +46,21 @@ export function useTaskStreamRecovery({
     let cancelled = false;
 
     async function recover() {
-      const status = await getRunStatus(taskId);
-      if (cancelled || recoveryDoneRef.current) return;
+      try {
+        const status = await getRunStatus(taskId);
+        if (cancelled || recoveryDoneRef.current) return;
 
-      if (status.status === "running") {
-        recoveryDoneRef.current = true;
-        toast.info("Reconnecting to in-progress generation…");
-        startReconnect(0);
-        return;
-      }
-
-      if (!apiMessages || apiMessages.length === 0) {
-        recoveryDoneRef.current = true;
-        return;
-      }
-
-      const orphan = findOrphanUserMessage(normalizeMessages(apiMessages));
-      if (orphan) {
-        recoveryDoneRef.current = true;
-        toast.info("Resuming interrupted request…");
-        sendMessage(orphan);
-        return;
+        // Only re-attach when the server still has an active stream (e.g. page reload
+        // mid-generation). Do not auto-resend failed/orphan user messages on chat reopen —
+        // the user can retry manually via the error toast or by sending again.
+        if (status.status === "running") {
+          recoveryDoneRef.current = true;
+          toast.info("Reconnecting to in-progress generation…");
+          startReconnect(0);
+          return;
+        }
+      } catch {
+        // API unreachable — skip recovery so opening a chat never crashes the UI.
       }
 
       recoveryDoneRef.current = true;
@@ -80,7 +72,6 @@ export function useTaskStreamRecovery({
       cancelled = true;
     };
   }, [
-    apiMessages,
     messagesReady,
     sendMessage,
     startReconnect,
